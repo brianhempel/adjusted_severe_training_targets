@@ -187,6 +187,7 @@ for fname in readdir(data_dir)
     path = replace(path, r"\.gz$" => "")
 
     for time_str in times(path)
+      print("\r$time_str")
       vals = duuuuuump(path, time_str)
       mucape_mask = map(r -> parse(Float32, r[3]), vals) .>= 1
 
@@ -199,9 +200,8 @@ for fname in readdir(data_dir)
       yyyymm        = Printf.@sprintf "%04d%02d"            year month
       yyyymmdd_hh00 = Printf.@sprintf "%04d%02d%02d_%02d00" year month day hour
 
-      out_path = yyyymmdd_hh00 * ".bits"
-
       mkpath(joinpath(out_dir, yyyymm))
+      out_path = joinpath(out_dir, yyyymm, yyyymmdd_hh00 * ".bits")
       write(out_path, mucape_mask)
     end
 
