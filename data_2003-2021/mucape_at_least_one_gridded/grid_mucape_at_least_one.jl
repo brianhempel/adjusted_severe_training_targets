@@ -7,6 +7,9 @@ function run_gempak_prog(prog_name; params...)
   prog = open(`$prog_name`, "r+")
 
   for (K, v) in params
+    if K == "GDFILE"
+      v = relpath(v) # Absolute paths can be toooo long
+    end
     println(prog, "$K=$v")
   end
 
