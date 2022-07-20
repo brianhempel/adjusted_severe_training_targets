@@ -75,7 +75,7 @@ end
 
 import DelimitedFiles
 
-const grid_236 = DelimitedFiles.readdlm("grid_236.csv", ',', String; header = true)[1]
+const grid_236 = DelimitedFiles.readdlm(joinpath(@__DIR__, "..", "..", "grid_236.csv"), ',', String; header = true)[1]
 
 
 # Returns array of (lat_str, lon_str, val_str) in the same order as the points in grid_236.csv
