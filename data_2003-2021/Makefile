@@ -1,3 +1,5 @@
+default:
+	cat Makefile
 
 get_asos_1_min_measured_gusts:
 	ruby asos_1_min_measured_gusts/get_asos6405.rb
