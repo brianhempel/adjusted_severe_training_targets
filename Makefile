@@ -5,6 +5,7 @@ julia:
 	julia --project
 
 install_gempak_mac:
+	# I actually never got this working.
 	sh install_gempak_mac.sh
 
 install_gempak_ubuntu:
