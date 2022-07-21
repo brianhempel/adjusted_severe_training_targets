@@ -13,3 +13,6 @@ get_storm_data_reports:
 
 grid_mucape_at_least_one:
 	julia mucape_at_least_one_gridded/grid_mucape_at_least_one.jl
+
+grid_at_least_one_lightning_strike:
+	julia at_least_one_lightning_strike_gridded/grid_lightning.jl
