@@ -16,3 +16,6 @@ grid_mucape_at_least_one:
 
 grid_at_least_one_lightning_strike:
 	julia at_least_one_lightning_strike_gridded/grid_lightning.jl
+
+filter_gusts:
+	julia asos_1_min_measured_gusts_filtered/filter_gusts.jl
