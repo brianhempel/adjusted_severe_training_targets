@@ -1,5 +1,6 @@
 import Dates
 import DelimitedFiles
+import Printf
 
 
 push!(LOAD_PATH, joinpath(@__DIR__, "..", ".."))
@@ -10,8 +11,9 @@ const wind_events_path = joinpath(@__DIR__, "..", "storm_data_reports", "wind_ev
 const out_dir          = @__DIR__
 
 
-HOUR = 60*60
-DAY  = 24*HOUR
+MINUTE = 60
+HOUR   = 60*MINUTE
+# DAY    = 24*HOUR
 
 
 struct Event
@@ -26,22 +28,6 @@ end
 
 is_severe_wind(wind_event) = wind_event.knots  >= 50.0
 is_sig_wind(wind_event)    = wind_event.knots  >= 65.0
-
-# function seconds_to_convective_days_since_epoch_utc(seconds_from_epoch_utc :: Int64) :: Int64
-#   fld(seconds_from_epoch_utc - 12*HOUR, DAY)
-# end
-
-# function convective_days_since_epoch_to_seconds_utc(day_i :: Int64) :: Int64
-#   day_i * DAY + 12*HOUR
-# end
-
-# function start_time_in_convective_days_since_epoch_utc(event :: Event) :: Int64
-#   seconds_to_convective_days_since_epoch_utc(event.start_seconds_from_epoch_utc)
-# end
-
-# function end_time_in_convective_days_since_epoch_utc(event :: Event) :: Int64
-#   seconds_to_convective_days_since_epoch_utc(event.end_seconds_from_epoch_utc)
-# end
 
 function event_looks_okay(event :: Event) :: Bool
   duration = event.end_seconds_from_epoch_utc - event.start_seconds_from_epoch_utc
@@ -193,12 +179,12 @@ function do_it(events)
 end
 
 
-wind_events = read_events_csv((@__DIR__) * "/../storm_data/wind_events.csv")
-conus_wind_events = filter(wind_events()) do wind_event
+wind_events = read_events_csv(wind_events_path)
+conus_wind_events = filter(wind_events) do wind_event
   # Exclude Alaska, Hawaii, Puerto Rico
   Grids.is_in_conus_bounding_box(wind_event.start_latlon) || Grids.is_in_conus_bounding_box(wind_event.end_latlon)
 end
-conus_severe_wind_events = filter(is_severe_wind, conus_wind_events())
-conus_sig_wind_events = filter(is_sig_wind, conus_wind_events())
+conus_severe_wind_events = filter(is_severe_wind, conus_wind_events)
+conus_sig_wind_events = filter(is_sig_wind, conus_wind_events)
 
 do_it(conus_severe_wind_events)

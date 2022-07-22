@@ -7,10 +7,11 @@ push!(LOAD_PATH, joinpath(@__DIR__, "..", ".."))
 import Grids
 
 const gusts_path = joinpath(@__DIR__, "..", "asos_1_min_measured_gusts", "gusts.csv.zip")
-const out_dir    = joinpath(@__DIR__, "..", "asos_1_min_measured_gusts_filtered")
+const out_dir    = joinpath(@__DIR__)
 
 const mucape_at_least_one_gridded_dir           = joinpath(@__DIR__, "..", "mucape_at_least_one_gridded")
 const at_least_one_lightning_strike_gridded_dir = joinpath(@__DIR__, "..", "at_least_one_lightning_strike_gridded")
+const at_least_one_wind_report_gridded_dir      = joinpath(@__DIR__, "..", "at_least_one_wind_report_gridded")
 
 
 function any_bit_set(root_path, grid, year, month, day, hour, flat_is) :: Bool
@@ -78,8 +79,12 @@ function extract()
       gust_knots_col_i = findfirst(isequal("gust_knots"), headers) :: Int64
       lat_col_i        = findfirst(isequal("lat"),        headers) :: Int64
       lon_col_i        = findfirst(isequal("lon"),        headers) :: Int64
-      println(out_filtered, line)
-      println(out_rejected, line * ",reasons")
+      println(out_filtered,    line * ",near_any_wind_reports")
+      println(out_filtered_50, line * ",near_any_wind_reports")
+      println(out_filtered_65, line * ",near_any_wind_reports")
+      println(out_rejected,    line * ",near_any_wind_reports,reasons")
+      println(out_rejected_50, line * ",near_any_wind_reports,reasons")
+      println(out_rejected_65, line * ",near_any_wind_reports,reasons")
       continue
     end
 
@@ -105,7 +110,7 @@ function extract()
     in_conus = Grids.is_in_conus_bounding_box(latlon)
 
     info_available = !((year, month, day, hour) in missing_hours_set)
-    if in_conus && info_available
+    if in_conus
       center_flat_i = Grids.latlon_to_closest_grid_i(grid, latlon)
 
       # Grid 236 is much larger than CONUS so we don't need to worry about the edges
@@ -117,14 +122,22 @@ function extract()
         center_flat_i-grid.width-1, center_flat_i-grid.width, center_flat_i-grid.width+1,
       ]
 
-      mucape_okay    = any_bit_set(mucape_at_least_one_gridded_dir,           grid, year, month, day, hour, flat_is)
-      lightning_okay = any_bit_set(at_least_one_lightning_strike_gridded_dir, grid, year, month, day, hour, flat_is)
+      if info_available
+        mucape_okay    = any_bit_set(mucape_at_least_one_gridded_dir,           grid, year, month, day, hour, flat_is)
+        lightning_okay = any_bit_set(at_least_one_lightning_strike_gridded_dir, grid, year, month, day, hour, flat_is)
+      end
+
+      near_any_wind_reports = any_bit_set(at_least_one_wind_report_gridded_dir, grid, year, month, day, hour, flat_is)
+    else
+      near_any_wind_reports = false
     end
 
+    out_line = line * (near_any_wind_reports ? ",true" :  ",false")
+
     if in_conus && info_available && mucape_okay && lightning_okay
-      println(out_filtered, line)
-      gust_knots >= 50 && println(out_filtered_50, line)
-      gust_knots >= 65 && println(out_filtered_65, line)
+      println(out_filtered, out_line)
+      gust_knots >= 50 && println(out_filtered_50, out_line)
+      gust_knots >= 65 && println(out_filtered_65, out_line)
       n_filtered += 1
     else
       reasons = []
@@ -132,9 +145,10 @@ function extract()
       !info_available &&                                       push!(reasons, "mucape_or_lightning_unavailable")
       in_conus        && info_available  && !mucape_okay    && push!(reasons, "mucape<1")
       in_conus        && info_available  && !lightning_okay && push!(reasons, "no_lightning")
-      println(out_rejected, line * "," * join(reasons, ";"))
-      gust_knots >= 50 && println(out_rejected_50, line * "," * join(reasons, ";"))
-      gust_knots >= 65 && println(out_rejected_65, line * "," * join(reasons, ";"))
+      out_line *= "," * join(reasons, ";")
+      println(out_rejected, out_line)
+      gust_knots >= 50 && println(out_rejected_50, out_line)
+      gust_knots >= 65 && println(out_rejected_65, out_line)
       n_rejected += 1
     end
   end
