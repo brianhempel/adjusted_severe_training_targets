@@ -202,6 +202,18 @@ function latlon_to_closest_grid_i_search(grid :: Grid, (target_lat, target_lon) 
   end
 end
 
+function mask_from_latlons(grid, latlons)
+  mask = BitArray(undef, length(grid.latlons))
+  mask .= 0
+
+  for latlon in latlons
+    flat_i = Grids.latlon_to_closest_grid_i(grid, latlon)
+    mask[flat_i] = 1
+  end
+
+  mask
+end
+
 
 const FEET_PER_METER  = 100.0 / 2.54 / 12.0
 const METERS_PER_MILE = 5280.0 / FEET_PER_METER

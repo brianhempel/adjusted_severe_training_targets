@@ -22,20 +22,6 @@ const out_dir  = joinpath(@__DIR__)
 # 2014-01-01 06:18:44 22.895  -87.159  -182.5  -27.0 kA  1
 # ...
 
-function mask_from_latlons(latlons)
-  grid = Grids.grid_236
-
-  mask = BitArray(undef, length(grid.latlons))
-  mask .= 0
-
-  for latlon in latlons
-    flat_i = Grids.latlon_to_closest_grid_i(grid, latlon)
-    mask[flat_i] = 1
-  end
-
-  mask
-end
-
 row_date_str(row) = row[1]
 row_hr_str(row)   = row[2][1:2]
 
@@ -89,7 +75,7 @@ function process_file(path)
       (parse(Float64, r[3]), parse(Float64, r[4]))
     end
 
-    mask = mask_from_latlons(latlons_in_hour)
+    mask = Grids.mask_from_latlons(Grids.grid_236, latlons_in_hour)
 
     print(Float32(count(mask) / length(mask))*100)
     print("%         ")
