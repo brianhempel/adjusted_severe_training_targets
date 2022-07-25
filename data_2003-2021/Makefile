@@ -18,7 +18,7 @@ grid_at_least_one_lightning_strike:
 	julia at_least_one_lightning_strike_gridded/grid_lightning.jl
 
 grid_wind_events:
-	julia grid_wind_events.jl
+	julia at_least_one_wind_report_gridded/grid_wind_events.jl
 
 filter_gusts:
 	julia asos_1_min_measured_gusts_filtered/filter_gusts.jl
