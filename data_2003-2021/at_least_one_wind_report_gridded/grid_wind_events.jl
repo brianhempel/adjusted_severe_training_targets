@@ -85,51 +85,6 @@ function read_events_csv(path) ::Vector{Event}
   filter(event_looks_okay, events_raw)
 end
 
-function event_segments_around_time(events :: Vector{Event}, seconds_from_utc_epoch :: Int64, seconds_before_and_after :: Int64) :: Vector{Tuple{Tuple{Float64, Float64}, Tuple{Float64, Float64}}}
-  period_start_seconds = seconds_from_utc_epoch - seconds_before_and_after
-  period_end_seconds   = seconds_from_utc_epoch + seconds_before_and_after
-
-  is_relevant_event(event) = begin
-    (event.end_seconds_from_epoch_utc  > period_start_seconds &&
-    event.start_seconds_from_epoch_utc < period_end_seconds) ||
-    # Zero-duration events exactly on the boundary count in the later period
-    (event.start_seconds_from_epoch_utc == period_start_seconds && event.end_seconds_from_epoch_utc == period_start_seconds)
-  end
-
-  relevant_events = filter(is_relevant_event, events)
-
-  event_to_segment(event) = begin
-    start_seconds = event.start_seconds_from_epoch_utc
-    end_seconds   = event.end_seconds_from_epoch_utc
-    start_latlon  = event.start_latlon
-    end_latlon    = event.end_latlon
-
-    duration = event.end_seconds_from_epoch_utc - event.start_seconds_from_epoch_utc
-
-    # Turns out no special case is needed for tornadoes of 0 duration.
-
-    if start_seconds >= period_start_seconds
-      seg_start_latlon = start_latlon
-    else
-      start_ratio = Float64(period_start_seconds - start_seconds) / duration
-      seg_start_latlon = Grids.ratio_on_segment(start_latlon, end_latlon, start_ratio)
-    end
-
-    if end_seconds <= period_end_seconds
-      seg_end_latlon = end_latlon
-    else
-      # This math is correct
-      end_ratio = Float64(period_end_seconds - start_seconds) / duration
-      seg_end_latlon = Grids.ratio_on_segment(start_latlon, end_latlon, end_ratio)
-    end
-
-    (seg_start_latlon, seg_end_latlon)
-  end
-
-  map(event_to_segment, relevant_events)
-end
-
-
 function do_it(events)
   t     = Dates.DateTime(2003,1,1,0)
   end_t = Dates.DateTime(2022,1,1,0)
@@ -145,7 +100,7 @@ function do_it(events)
     # Events from t to t+1hr
 
     seconds_from_utc_epoch = Int64(Dates.datetime2unix(t))
-    segments = event_segments_around_time(events, seconds_from_utc_epoch + 30*MINUTE, 30*MINUTE)
+    segments = Grids.event_segments_around_time(events, seconds_from_utc_epoch + 30*MINUTE, 30*MINUTE)
 
     latlons_in_hour = Tuple{Float64, Float64}[]
 

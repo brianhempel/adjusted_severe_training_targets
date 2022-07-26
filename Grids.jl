@@ -278,6 +278,16 @@ function instant_meters_to_line((lat, lon) :: Tuple{Float64,Float64}, (lat1, lon
   end
 end
 
+function miles_to_line((lat, lon) :: Tuple{Float64,Float64}, (lat1, lon1) :: Tuple{Float64,Float64}, (lat2, lon2) :: Tuple{Float64,Float64}) :: Float64
+  if abs(lon - lon1) >= 180.0 || abs(lon - lon2) >= 180.0 || abs(lon1 - lon2) >= 180.0
+    # instant_meters_to_line calculation is not periodic
+    NaN
+  else
+    instant_meters_to_line((lat, lon), (lat1, lon1), (lat2, lon2)) / Grids.METERS_PER_MILE
+  end
+end
+
+
 # FCC method, per Wikipedia https://en.wikipedia.org/wiki/Geographical_distance#Ellipsoidal_Earth_projected_to_a_plane
 # Surprisingly good! Generally much less than 0.01% error over short distances, and not completely awful over long distances.
 # Precondition: longitudes don't cross over (raw lon2-lon1 < 180)
@@ -309,6 +319,51 @@ function ratio_on_segment((lat1, lon1) :: Tuple{Float64,Float64}, (lat2, lon2) :
   ratio_point = deepcopy([lon1, lat1]) # call is destructive :(
   Proj4._geod_direct!(wgs84.geod, ratio_point, point_1_azimuth, distance * ratio)
   (ratio_point[2], ratio_point[1])
+end
+
+# Events should be a vector of records that have start_seconds_from_epoch_utc, end_seconds_from_epoch_utc, start_latlon, and end_latlon fields.
+function event_segments_around_time(events, seconds_from_utc_epoch :: Int64, seconds_before_and_after :: Int64) :: Vector{Tuple{Tuple{Float64, Float64}, Tuple{Float64, Float64}}}
+  period_start_seconds = seconds_from_utc_epoch - seconds_before_and_after
+  period_end_seconds   = seconds_from_utc_epoch + seconds_before_and_after
+
+  is_relevant_event(event) = begin
+    (event.end_seconds_from_epoch_utc  > period_start_seconds &&
+    event.start_seconds_from_epoch_utc < period_end_seconds) ||
+    # Zero-duration events exactly on the boundary count in the later period
+    (event.start_seconds_from_epoch_utc == period_start_seconds && event.end_seconds_from_epoch_utc == period_start_seconds)
+  end
+
+  relevant_events = filter(is_relevant_event, events)
+
+  event_to_segment(event) = begin
+    start_seconds = event.start_seconds_from_epoch_utc
+    end_seconds   = event.end_seconds_from_epoch_utc
+    start_latlon  = event.start_latlon
+    end_latlon    = event.end_latlon
+
+    duration = event.end_seconds_from_epoch_utc - event.start_seconds_from_epoch_utc
+
+    # Turns out no special case is needed for tornadoes of 0 duration.
+
+    if start_seconds >= period_start_seconds
+      seg_start_latlon = start_latlon
+    else
+      start_ratio = Float64(period_start_seconds - start_seconds) / duration
+      seg_start_latlon = Grids.ratio_on_segment(start_latlon, end_latlon, start_ratio)
+    end
+
+    if end_seconds <= period_end_seconds
+      seg_end_latlon = end_latlon
+    else
+      # This math is correct
+      end_ratio = Float64(period_end_seconds - start_seconds) / duration
+      seg_end_latlon = Grids.ratio_on_segment(start_latlon, end_latlon, end_ratio)
+    end
+
+    (seg_start_latlon, seg_end_latlon)
+  end
+
+  map(event_to_segment, relevant_events)
 end
 
 end
