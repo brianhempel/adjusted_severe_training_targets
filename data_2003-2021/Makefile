@@ -7,9 +7,9 @@ get_asos_1_min_measured_gusts:
 
 get_storm_data_reports:
 	# Storm Data labeling for estimated/measured sustained/gust isn't consistent until 2003
-	START_YEAR=2003 STOP_YEAR=2021 BAD_LATLON_HANDLING=repair ruby storm_data_reports/get_wind_events.rb storm_data_reports/tornadoes_2003-2021_downloaded.csv storm_data_reports/wind_events_2003-2021_downloaded.csv storm_data_reports/hail_events_2003-2021_downloaded.csv
+	START_YEAR=2003 STOP_YEAR=2021 BAD_LATLON_HANDLING=repair ruby storm_data_reports/get_wind_events.rb storm_data_reports/wind_events_2003-2021_downloaded.csv
 	ruby deduplicate_sort_merge_csvs.rb storm_data_reports/wind_events_2003-2021_downloaded.csv > storm_data_reports/wind_events_2003-2021.csv # The merge deduplicates and sorts
-	rm storm_data_reports/tornadoes_2003-2021_downloaded.csv storm_data_reports/wind_events_2003-2021_downloaded.csv storm_data_reports/hail_events_2003-2021_downloaded.csv
+	rm storm_data_reports/wind_events_2003-2021_downloaded.csv
 
 grid_mucape_at_least_one:
 	julia mucape_at_least_one_gridded/grid_mucape_at_least_one.jl
@@ -20,5 +20,10 @@ grid_at_least_one_lightning_strike:
 grid_wind_events:
 	julia at_least_one_wind_report_gridded/grid_wind_events.jl
 
+get_tropical_cyclones:
+	julia tropical_cyclones/get_tropical_cyclones.jl
+
 filter_gusts:
 	julia asos_1_min_measured_gusts_filtered/filter_gusts.jl
+	cd asos_1_min_measured_gusts_filtered; ruby one_gust_per_hour_per_station.rb gusts_at_least_50_knots_filtered_tc.csv > gusts_at_least_50_knots_filtered_tc_one_per_hour.csv
+	cd asos_1_min_measured_gusts_filtered; ruby one_gust_per_hour_per_station.rb gusts_at_least_65_knots_filtered_tc.csv > gusts_at_least_65_knots_filtered_tc_one_per_hour.csv
