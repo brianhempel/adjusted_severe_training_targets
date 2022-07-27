@@ -4,6 +4,8 @@ default:
 get_asos_1_min_measured_gusts:
 	ruby asos_1_min_measured_gusts/get_asos6405.rb
 	ruby deduplicate_sort_merge_csvs.rb asos_1_min_measured_gusts/gusts-20*.csv > asos_1_min_measured_gusts/gusts.csv
+	cd asos_1_min_measured_gusts; gzip gusts.csv
+	ruby which_asos_months_look_good.rb > which_asos_months_look_good.csv
 
 get_storm_data_reports:
 	# Storm Data labeling for estimated/measured sustained/gust isn't consistent until 2003
