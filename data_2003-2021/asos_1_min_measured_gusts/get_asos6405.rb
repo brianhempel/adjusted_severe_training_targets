@@ -128,11 +128,8 @@ years.each do |year|
       wban_id
       name
       state
-      county
       knots
       gust_knots
-      lat
-      lon
     ].to_csv)
 
     File.write(good_row_counts_path(year, month), %w[

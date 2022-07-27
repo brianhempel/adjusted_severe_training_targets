@@ -415,8 +415,6 @@ paths.each do |path|
     end
 
     last_yyyymmdd = nil
-    lat_str = nil
-    lon_str = nil
     valid_stations = []
     rows8.each do |yyyymmdd, utc_time, knots, gust_knots|
       if yyyymmdd != last_yyyymmdd
@@ -440,22 +438,19 @@ paths.each do |path|
           valid_stations.select! { |station| station["PLATFORM"].include?("ASOS") }
         end
 
-        lat = valid_stations.map { |station| station["LAT_DEC"].to_f }.mean
-        lon = valid_stations.map { |station| station["LON_DEC"].to_f }.mean
+        # lat = valid_stations.map { |station| station["LAT_DEC"].to_f }.mean
+        # lon = valid_stations.map { |station| station["LON_DEC"].to_f }.mean
 
         # Ensure all stations are within 1 mile of centroid
-        stations_good = valid_stations.all? { |station| instantish_distance_miles(station["LAT_DEC"].to_f, station["LON_DEC"].to_f, lat, lon) <= 1.0 }
+        # stations_good = valid_stations.all? { |station| instantish_distance_miles(station["LAT_DEC"].to_f, station["LON_DEC"].to_f, lat, lon) <= 1.0 }
 
-        if !stations_good
-          STDERR.puts "Conflicting station locations for WBAN #{wban} on #{yyyymmdd}:"
-          STDERR.puts path
-          # STDERR.puts valid_stations.map(&:to_csv).join("\n")
-          STDERR.puts valid_stations.map(&:to_csv).join("\n")
-          next
-        end
-
-        lat_str = ("%.4f" % lat).sub(/0+$/,"")
-        lon_str = ("%.4f" % lon).sub(/0+$/,"")
+        # if !stations_good
+        #   STDERR.puts "Conflicting station locations for WBAN #{wban} on #{yyyymmdd}:"
+        #   STDERR.puts path
+        #   # STDERR.puts valid_stations.map(&:to_csv).join("\n")
+        #   STDERR.puts valid_stations.map(&:to_csv).join("\n")
+        #   next
+        # end
       end
 
       if lat_str
@@ -465,11 +460,8 @@ paths.each do |path|
           wban,
           valid_stations.first["NAME_PRINCIPAL"], # CHICAGO OHARE INTL AP
           valid_stations.first["STATE_PROV"], # IL
-          valid_stations.first["COUNTY"], # COOK
           knots,
           gust_knots,
-          lat_str,
-          lon_str
         ]
       end
     end
