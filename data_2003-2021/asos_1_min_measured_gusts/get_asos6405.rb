@@ -151,8 +151,6 @@ years.each do |year|
       convective_date
       convective_day_index
       wban_id
-      lat
-      lon
       good_row_count
     ].to_csv)
 

@@ -26,16 +26,16 @@ METERS_PER_MILE = 5280.0 / FEET_PER_METER
 # FCC method, per Wikipedia https://en.wikipedia.org/wiki/Geographical_distance#Ellipsoidal_Earth_projected_to_a_plane
 # Surprisingly good! Generally much less than 0.01% error over short distances, and not completely awful over long distances.
 # Precondition: longitudes don't cross over (raw lon2-lon1 < 180)
-def instantish_distance_miles(lat1, lon1, lat2, lon2)
-  mean_lat = (lat1 + lat2) / 2.0 / 180.0 * Math::PI
-  dlat     = lat2 - lat1
-  dlon     = lon2 - lon1
+# def instantish_distance_miles(lat1, lon1, lat2, lon2)
+#   mean_lat = (lat1 + lat2) / 2.0 / 180.0 * Math::PI
+#   dlat     = lat2 - lat1
+#   dlon     = lon2 - lon1
 
-  k1 = 111.13209 - 0.56605*Math.cos(2*mean_lat) + 0.00120*Math.cos(4*mean_lat)
-  k2 = 111.41513*Math.cos(mean_lat) - 0.09455*Math.cos(3*mean_lat) + 0.00012*Math.cos(5*mean_lat)
+#   k1 = 111.13209 - 0.56605*Math.cos(2*mean_lat) + 0.00120*Math.cos(4*mean_lat)
+#   k2 = 111.41513*Math.cos(mean_lat) - 0.09455*Math.cos(3*mean_lat) + 0.00012*Math.cos(5*mean_lat)
 
-  Math.sqrt((k1*dlat)**2.0 + (k2*dlon)**2.0) * 1000.0 / METERS_PER_MILE
-end
+#   Math.sqrt((k1*dlat)**2.0 + (k2*dlon)**2.0) * 1000.0 / METERS_PER_MILE
+# end
 
 class Array
   def mean
@@ -418,16 +418,14 @@ paths.each do |path|
     valid_stations = []
     rows8.each do |yyyymmdd, utc_time, knots, gust_knots|
       if yyyymmdd != last_yyyymmdd
-        lat_str = nil
-        lon_str = nil
+        # lat_str = nil
+        # lon_str = nil
         last_yyyymmdd = yyyymmdd
 
         valid_stations = wban_stations.select { |row| yyyymmdd >= row["BEGIN_DATE"] && yyyymmdd <= row["END_DATE"] }
 
         if valid_stations.size == 0
-          STDERR.puts "No station locations for WBAN #{wban} on #{yyyymmdd}"
-          STDERR.puts path
-          next
+          STDERR.puts "No station records for WBAN #{wban} on #{yyyymmdd} #{File.basename(path)}"
         end
 
         # Disambiguate upper air and radar stations.
@@ -453,24 +451,24 @@ paths.each do |path|
         # end
       end
 
-      if lat_str
-        final_rows_for_path << [
-          utc_time.to_s,
-          utc_time.to_i,
-          wban,
-          valid_stations.first["NAME_PRINCIPAL"], # CHICAGO OHARE INTL AP
-          valid_stations.first["STATE_PROV"], # IL
-          knots,
-          gust_knots,
-        ]
-      end
+      # if lat_str
+      final_rows_for_path << [
+        utc_time.to_s,
+        utc_time.to_i,
+        wban,
+        (valid_stations.first || {})["NAME_PRINCIPAL"], # CHICAGO OHARE INTL AP
+        (valid_stations.first || {})["STATE_PROV"], # IL
+        knots,
+        gust_knots,
+      ]
+      # end
     end
   end
 
   open(good_row_counts_path, "a") do |good_rows_csv|
     final_rows_for_path
-      .group_by { |r| [r[2], r[8], r[9]] } # WBAN, lat_str, lon_str
-      .each do |(wban, lat_str, lon_str), location_rows|
+      .group_by { |r| r[2] } # WBAN
+      .each do |wban, location_rows|
         location_rows
           .map { |r| (r[1] - 12*HOUR) / DAY } # convective_day_i
           .tally
@@ -479,8 +477,6 @@ paths.each do |path|
               Time.from_convective_day_i(day_i).strftime("%F"),
               day_i,
               wban,
-              lat_str,
-              lon_str,
               good_rows_count
             ].to_csv
           end
