@@ -12,6 +12,14 @@ require "csv"
 year_months             = (ENV["ONLY_YEAR_MONTHS"] || "").split(",").map { |year_month_str| year_month_str.split("-").map(&:to_i) }
 start_year, start_month = (ENV["START_YEAR_MONTH"] || "2000-1").split("-").map(&:to_i)
 
+# For parallel downloads...
+# Preferable a factor of 12, because partitioning is by month
+# WORKER=1/3
+# WORKER=2/3
+# WORKER=3/3
+worker_number, worker_count = (ENV["WORKER"] || "1/1").split("/").map(&:to_i)
+
+
 if year_months == []
   year_months = (2000..Time.now.year).to_a.product((1..12).to_a)
 end
@@ -19,6 +27,13 @@ end
 year_months.select! do |year, month|
   ([year, month] <=> [start_year, start_month]) >= 0 && ([year, month] <=> [Time.now.year, Time.now.month]) < 0
 end
+
+# Filter by worker number
+year_months.sort!
+year_months = year_months.each_slice(worker_count).filter_map do |slice|
+  slice[worker_number - 1]
+end
+
 
 
 HERE           = File.expand_path("..", __FILE__)

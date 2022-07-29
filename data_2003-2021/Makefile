@@ -2,6 +2,11 @@ default:
 	cat Makefile
 
 get_asos_1_min_measured_gusts:
+  # For parallel downloads, run these manually:
+	# WORKER=1/4 ruby asos_1_min_measured_gusts/get_asos6405.rb
+	# WORKER=2/4 ruby asos_1_min_measured_gusts/get_asos6405.rb
+	# WORKER=3/4 ruby asos_1_min_measured_gusts/get_asos6405.rb
+	# WORKER=4/4 ruby asos_1_min_measured_gusts/get_asos6405.rb
 	ruby asos_1_min_measured_gusts/get_asos6405.rb
 	ruby deduplicate_sort_merge_csvs.rb asos_1_min_measured_gusts/gusts-20*.csv > asos_1_min_measured_gusts/gusts.csv
 	cd asos_1_min_measured_gusts; gzip gusts.csv
