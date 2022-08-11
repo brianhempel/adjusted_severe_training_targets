@@ -240,12 +240,12 @@ function plot_reports()
     end
 
     @sync begin
-      @async plot_one("estimated_x$(correction_factor)_normalized_report_hours_per_year",         nothing, estimated_normalized_report_hours_per_year_grid_130_cropped_blurred_path(correction_factor);         zlow = 0, zhigh = 10,  steps = 10, colors = colors_path_10)
-      @async plot_one("estimated_x$(correction_factor)_normalized_report_fourhours_per_year",     nothing, estimated_normalized_report_fourhours_per_year_grid_130_cropped_blurred_path(correction_factor);     zlow = 0, zhigh = 10,  steps = 10, colors = colors_path_10)
-      @async plot_one("estimated_x$(correction_factor)_normalized_report_days_per_year",          nothing, estimated_normalized_report_days_per_year_grid_130_cropped_blurred_path(correction_factor);          zlow = 0, zhigh = 10,  steps = 10, colors = colors_path_10)
-      @async plot_one("estimated_x$(correction_factor)_normalized_sig_report_hours_per_year",     nothing, estimated_normalized_sig_report_hours_per_year_grid_130_cropped_blurred_path(correction_factor);     zlow = 0, zhigh = 0.5, steps = 5,  colors = colors_path_0_5)
-      @async plot_one("estimated_x$(correction_factor)_normalized_sig_report_fourhours_per_year", nothing, estimated_normalized_sig_report_fourhours_per_year_grid_130_cropped_blurred_path(correction_factor); zlow = 0, zhigh = 0.5, steps = 5,  colors = colors_path_0_5)
-      @async plot_one("estimated_x$(correction_factor)_normalized_sig_report_days_per_year",      nothing, estimated_normalized_sig_report_days_per_year_grid_130_cropped_blurred_path(correction_factor);      zlow = 0, zhigh = 0.5, steps = 5,  colors = colors_path_0_5)
+      @async plot_one("estimated_x$(correction_factor)_normalized_report_hours_per_year",         nothing, estimated_normalized_report_hours_per_year_grid_130_cropped_blurred_path(correction_factor);         zlow = 0, zhigh = 5,   steps = 5, colors = colors_path_5)
+      @async plot_one("estimated_x$(correction_factor)_normalized_report_fourhours_per_year",     nothing, estimated_normalized_report_fourhours_per_year_grid_130_cropped_blurred_path(correction_factor);     zlow = 0, zhigh = 5,   steps = 5, colors = colors_path_5)
+      @async plot_one("estimated_x$(correction_factor)_normalized_report_days_per_year",          nothing, estimated_normalized_report_days_per_year_grid_130_cropped_blurred_path(correction_factor);          zlow = 0, zhigh = 5,   steps = 5, colors = colors_path_5)
+      @async plot_one("estimated_x$(correction_factor)_normalized_sig_report_hours_per_year",     nothing, estimated_normalized_sig_report_hours_per_year_grid_130_cropped_blurred_path(correction_factor);     zlow = 0, zhigh = 0.5, steps = 5, colors = colors_path_0_5)
+      @async plot_one("estimated_x$(correction_factor)_normalized_sig_report_fourhours_per_year", nothing, estimated_normalized_sig_report_fourhours_per_year_grid_130_cropped_blurred_path(correction_factor); zlow = 0, zhigh = 0.5, steps = 5, colors = colors_path_0_5)
+      @async plot_one("estimated_x$(correction_factor)_normalized_sig_report_days_per_year",      nothing, estimated_normalized_sig_report_days_per_year_grid_130_cropped_blurred_path(correction_factor);      zlow = 0, zhigh = 0.5, steps = 5, colors = colors_path_0_5)
     end
 
     @sync begin
