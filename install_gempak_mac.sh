@@ -1,3 +1,5 @@
+# I actually never got this working. I don't know if I was close.
+#
 # You probably need more packages than this...this was just the diff for my machine.
 brew install openmotif gcc@8 # Fortran 10 produces lots of errors, use Fortran 8
 curl -L https://github.com/Unidata/gempak/archive/refs/tags/7.15.0.tar.gz | gunzip | tar -x
