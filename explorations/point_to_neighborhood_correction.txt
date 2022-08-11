@@ -1,0 +1,6 @@
+25mi neighborhood correction hour:         2.378331
+25mi neighborhood correction fourhour:     2.1691527
+25mi neighborhood correction day:          1.8490138
+25mi neighborhood correction sig hour:     2.5243187
+25mi neighborhood correction sig fourhour: 2.494516
+25mi neighborhood correction sig day:      2.4178498

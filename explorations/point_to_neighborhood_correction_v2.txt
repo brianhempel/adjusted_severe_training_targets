@@ -1,0 +1,10 @@
+25mi neighborhood day correction 1 stations:	0.970948
+25mi neighborhood day correction 2 stations:	1.9505725
+25mi neighborhood day correction 3 stations:	2.8006334
+25mi neighborhood day correction 4 stations:	3.5320213
+25mi neighborhood day correction 5 stations:	4.245937
+25mi neighborhood day correction 6 stations:	5.115857
+25mi neighborhood day correction 7 stations:	6.0475035
+25mi neighborhood day correction 8 stations:	NaN
+25mi neighborhood day correction 9 stations:	NaN
+25mi neighborhood day correction 10 stations:	NaN

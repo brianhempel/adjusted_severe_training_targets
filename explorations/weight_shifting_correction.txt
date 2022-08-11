@@ -1,0 +1,6 @@
+reweight correction hour: 6.858429
+reweight correction fourhour: 6.0157332
+reweight correction day: 5.5087843
+reweight correction sig_hour: 9.440011
+reweight correction sig_fourhour: 8.885217
+reweight correction sig_day: 8.645741
