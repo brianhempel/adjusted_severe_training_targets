@@ -484,8 +484,8 @@ paths.each do |path|
   end
 
   final_rows_for_path.each do |row|
-    knots      = row[6]
-    gust_knots = row[7]
+    knots      = row[5]
+    gust_knots = row[6]
     if knots >= 40 || gust_knots >= 40
       puts row.to_csv
     end
