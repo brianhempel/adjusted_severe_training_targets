@@ -87,6 +87,7 @@ EMAIL = gets.strip
 exit(1) unless EMAIL =~ /\S+@\S+\.\S+/
 
 def connect_and_do(year, cmd)
+  sleep 1 # If we disconnect and reconnect too fast, the server may think we hit our connection limit.
   out = nil
   IO.popen("ftp --no-prompt --prompt -n ftp.ncdc.noaa.gov", "r+") do |ftp|
     wait_for_prompt(ftp)
