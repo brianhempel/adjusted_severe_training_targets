@@ -37,7 +37,7 @@ end
 
 HERE           = File.expand_path("..", __FILE__)
 PROCESS_SCRIPT = File.expand_path("../process_asos6405.rb", __FILE__)
-UNDOWNLOADABLE = File.expand_path("../undownloadable_asos.txt", __FILE__)
+# UNDOWNLOADABLE = File.expand_path("../undownloadable_asos.txt", __FILE__)
 
 def out_path(year, month)
   File.join(HERE, "gusts-%04d-%02d.csv" % [year, month])
@@ -100,7 +100,7 @@ def connect_and_do(year, cmd)
   out
 end
 
-File.write(UNDOWNLOADABLE, "") unless ENV["START_YEAR_MONTH"] || ENV["ONLY_YEAR_MONTHS"] # clear the file
+# File.write(UNDOWNLOADABLE, "") unless ENV["START_YEAR_MONTH"] || ENV["ONLY_YEAR_MONTHS"] # clear the file
 
 process_thread = nil
 
