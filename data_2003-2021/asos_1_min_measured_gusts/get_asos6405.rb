@@ -10,10 +10,11 @@ require "fileutils"
 require "csv"
 
 year_months             = (ENV["ONLY_YEAR_MONTHS"] || "").split(",").map { |year_month_str| year_month_str.split("-").map(&:to_i) }
-start_year, start_month = (ENV["START_YEAR_MONTH"] || "2000-1").split("-").map(&:to_i)
+start_year, start_month = (ENV["START_YEAR_MONTH"] || "2003-1").split("-").map(&:to_i)
+end_year,   end_month   = (ENV["END_YEAR_MONTH"]   || "2021-12").split("-").map(&:to_i)
 
 # For parallel downloads...
-# Preferable a factor of 12, because partitioning is by month
+# ftp.ncdc.noaa.gov allows up to 5 connections.
 # WORKER=1/3
 # WORKER=2/3
 # WORKER=3/3
@@ -21,11 +22,9 @@ worker_number, worker_count = (ENV["WORKER"] || "1/1").split("/").map(&:to_i)
 
 
 if year_months == []
-  year_months = (2000..Time.now.year).to_a.product((1..12).to_a)
-end
-
-year_months.select! do |year, month|
-  ([year, month] <=> [start_year, start_month]) >= 0 && ([year, month] <=> [Time.now.year, Time.now.month]) < 0
+  year_months = (start_year..end_year).to_a.product((1..12).to_a).select do |year, month|
+    ([year, month] <=> [start_year, start_month]) >= 0 && ([year, month] <=> [end_year, end_month]) <= 0
+  end
 end
 
 # Filter by worker number
