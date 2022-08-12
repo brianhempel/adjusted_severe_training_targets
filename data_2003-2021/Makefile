@@ -8,8 +8,6 @@ get_asos_1_min_measured_gusts:
 	# WORKER=3/5 ruby asos_1_min_measured_gusts/get_asos6405.rb
 	# WORKER=4/5 ruby asos_1_min_measured_gusts/get_asos6405.rb
 	# WORKER=5/5 ruby asos_1_min_measured_gusts/get_asos6405.rb
-	# Check undownloadable_asos.txt, rename it, and rerun with ONLY_YEAR_MONTHS=2004-07,2005-04,2005-06,...
-	# Repeat until undownloadable_asos.txt is empty.
 	ruby asos_1_min_measured_gusts/get_asos6405.rb
 	ruby deduplicate_sort_merge_csvs.rb asos_1_min_measured_gusts/gusts-20*.csv > asos_1_min_measured_gusts/gusts.csv
 	cd asos_1_min_measured_gusts; gzip gusts.csv

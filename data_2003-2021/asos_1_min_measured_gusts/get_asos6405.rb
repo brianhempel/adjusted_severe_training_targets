@@ -160,21 +160,22 @@ years.each do |year|
 
     connect_and_do(year, "mget *%02d.dat" % month)
 
-    # max 2 retries
-    2.times do
+    loop do
       month_files_to_get_and_size.select! do |filename, size|
         (File.size(filename) rescue 0) != size
       end
       break if month_files_to_get_and_size.size == 0
+      sleep 60
       month_files_to_get_and_size.each do |filename, _|
         connect_and_do(year, "get #{filename}")
       end
     end
-    File.open(UNDOWNLOADABLE, "a") do |undownloadable|
-      month_files_to_get_and_size.each do |filename, _|
-        undownloadable.puts(filename)
-      end
-    end
+    # File.open(UNDOWNLOADABLE, "a") do |undownloadable|
+    #   month_files_to_get_and_size.each do |filename, _|
+    #     File.exists?(filename) && system("rm #{filename}")
+    #     undownloadable.puts(filename)
+    #   end
+    # end
     process_thread.join if process_thread
 
     # Generate CSV gust lines from all files, sort them, and write them to gusts.csv
@@ -185,7 +186,8 @@ years.each do |year|
       puts cmd
       buf = `#{cmd}`.lines.sort.join
       File.open(out_path(year, month), "a") { |out| out.print(buf) }
-      system("rm #{dat_glob}")
+      # system("rm #{dat_glob}")
+      system("bzip2 -f #{dat_glob}")
     end
   end
 end
