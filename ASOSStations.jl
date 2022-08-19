@@ -81,25 +81,12 @@ struct Station
 end
 
 const stations_uptime_path = (@__DIR__) * "/data_2003-2021/asos_1_min_measured_gusts/which_asos_months_look_good.csv"
-const stations_info_path   = (@__DIR__) * "/data_2003-2021/asos_1_min_measured_gusts/mshr_enhanced_wban_only.csv"
 
 
-# Maybe I should finally learn how to use Julia's dataframes...
+import StationInfos
 
-import CSV
-using DataFrames
+const station_infos = StationInfos.station_infos
 
-const station_infos = CSV.read(stations_info_path, DataFrame, types = Dict(:WBAN_ID => String))
-
-# parse integer 19760630
-int_to_date(n) = Dates.Date(n÷10000, mod(n÷100,100), mod(n,100))
-
-station_infos.BEGIN_DATE = int_to_date.(station_infos.BEGIN_DATE)
-station_infos.END_DATE   = int_to_date.(station_infos.END_DATE)
-station_infos.OBS_ENV    = map(x -> ismissing(x) ? "" : x, station_infos.OBS_ENV)
-station_infos.PLATFORM   = map(x -> ismissing(x) ? "" : x, station_infos.PLATFORM)
-
-# stations[stations.WBAN_ID .== "93744", :]
 
 # "2022-10"
 function month_str_to_date(str)
@@ -168,13 +155,9 @@ function get_stations()
 
     valid_infos = infos[.!(infos.END_DATE .< begin_date) .&& .!(infos.BEGIN_DATE .>= end_date_exclusive), :]
 
-    # Disambiguate upper air and radar stations.
-    if nrow(valid_infos) >= 2 && nrow(valid_infos[occursin.("LANDSFC", valid_infos.:OBS_ENV), :]) >= 1
-      valid_infos = valid_infos[occursin.("LANDSFC", valid_infos.:OBS_ENV), :]
-    end
-    if nrow(valid_infos) >= 2 && nrow(valid_infos[occursin.("ASOS", valid_infos.:PLATFORM), :]) >= 1
-      valid_infos = valid_infos[occursin.("ASOS", valid_infos.:PLATFORM), :]
-    end
+    # Sometimes there are multiple stations for a time range.
+    # Try and filter down to just the ASOS stations (exlcuding e.g. upper air or radar sites).
+    valid_infos = StationInfos.disambiguate_station_infos(valid_infos)
 
     # If there's still ambiguity, only look at stations during gust times
     if nrow(valid_infos) >= 2

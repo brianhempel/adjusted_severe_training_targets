@@ -10,8 +10,9 @@ import Printf
 push!(LOAD_PATH, joinpath(@__DIR__, "..", ".."))
 
 import Grids
+using Utils
 
-const gusts_path = joinpath(@__DIR__, "..", "asos_1_min_measured_gusts", "gusts.csv.zip")
+const gusts_path = joinpath(@__DIR__, "..", "asos_1_min_measured_gusts", "gusts.csv.gz")
 const out_dir    = joinpath(@__DIR__)
 
 const mucape_at_least_one_gridded_dir           = joinpath(@__DIR__, "..", "mucape_at_least_one_gridded")
@@ -59,6 +60,8 @@ end
 
 _, missing_hours = compute_missing_present_hours()
 
+# 5.194524495677234% of hours missing MUCAPE or lightning info
+
 const missing_hours_set = Set(missing_hours)
 
 
@@ -100,6 +103,35 @@ end
 const hurricane_and_tropical_storm_segments = filter(seg -> seg.status == "TS" || seg.status == "HU", read_tc_csv(tc_segments_path))
 
 
+import DataFrames
+push!(LOAD_PATH, joinpath(@__DIR__, "..", "asos_1_min_measured_gusts"))
+import StationInfos
+
+const nrow = DataFrames.nrow
+const wban_id_to_station_infos = Dict(map(collect(DataFrames.groupby(StationInfos.station_infos, :WBAN_ID))) do df
+  df[1, :WBAN_ID] => df
+end)
+
+function best_guess_latlon(wban_id, time)
+  wban_infos = wban_id_to_station_infos[wban_id]
+  nrow(wban_infos) == 1 && return (wban_infos[1, :LAT_DEC], wban_infos[1, :LON_DEC])
+
+  # Gust time is in UTC, but the station records are probably local time. Eh. Not an important edge case.
+  date        = convert(Dates.Date, time)
+  wban_infos2 = wban_infos[wban_infos.END_DATE .>= date .&& wban_infos.BEGIN_DATE .<= date, :]
+  wban_infos  = nrow(wban_infos2) >= 1 ? wban_infos2 : wban_infos
+  nrow(wban_infos) == 1 && return (wban_infos[1, :LAT_DEC], wban_infos[1, :LON_DEC])
+
+  # Sometimes there are multiple stations for a time range.
+  # Try and filter down to just the ASOS stations (exlcuding e.g. upper air or radar sites).
+  wban_infos2 = StationInfos.disambiguate_station_infos(wban_infos)
+  wban_infos = nrow(wban_infos2) >= 1 ? wban_infos2 : wban_infos
+  nrow(wban_infos) == 1 && return (wban_infos[1, :LAT_DEC], wban_infos[1, :LON_DEC])
+
+  # Still ambiguous? Take mean latlon of station infos.
+  (mean(wban_infos[:, :LAT_DEC]), mean(wban_infos[:, :LON_DEC]))
+end
+
 function extract()
   grid = Grids.grid_236
 
@@ -120,21 +152,26 @@ function extract()
   out_rejected_65_tc = open(joinpath(out_dir, "gusts_at_least_65_knots_rejected_tc.csv"), "w")
 
   headers = nothing
-  time_str_col_i, gust_knots_col_i, lat_col_i, lon_col_i = -1, -1, -1, -1
-  for line in eachline(`unzip -p $gusts_path`)
+  time_str_col_i, wban_col_i, gust_knots_col_i = -1, -1, -1
+  for line in eachline(`gunzip --stdout $gusts_path`)
     if isnothing(headers)
-      # time_str,time_seconds,wban_id,name,state,county,knots,gust_knots,lat,lon
+      # time_str,time_seconds,wban_id,name,state,county,knots,gust_knots
       headers          = split(line, ',')
       time_str_col_i   = findfirst(isequal("time_str"),   headers) :: Int64
+      wban_col_i       = findfirst(isequal("wban_id"),        headers) :: Int64
       gust_knots_col_i = findfirst(isequal("gust_knots"), headers) :: Int64
-      lat_col_i        = findfirst(isequal("lat"),        headers) :: Int64
-      lon_col_i        = findfirst(isequal("lon"),        headers) :: Int64
-      println(out_filtered,    line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
-      println(out_filtered_50, line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
-      println(out_filtered_65, line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
-      println(out_rejected,    line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
-      println(out_rejected_50, line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
-      println(out_rejected_65, line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
+      println(out_filtered,       line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
+      println(out_filtered_50,    line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
+      println(out_filtered_65,    line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
+      println(out_filtered_tc,    line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
+      println(out_filtered_50_tc, line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
+      println(out_filtered_65_tc, line * ",near_any_wind_reports,near_hurricane_or_tropical_storm")
+      println(out_rejected,       line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
+      println(out_rejected_50,    line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
+      println(out_rejected_65,    line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
+      println(out_rejected_tc,    line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
+      println(out_rejected_50_tc, line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
+      println(out_rejected_65_tc, line * ",near_any_wind_reports,near_hurricane_or_tropical_storm,reasons")
       continue
     end
 
@@ -157,7 +194,11 @@ function extract()
 
     print("\r$(row[time_str_col_i])")
 
-    latlon = parse(Float64, row[lat_col_i]), parse(Float64, row[lon_col_i])
+    wban_id = row[wban_col_i]
+
+    time = Dates.DateTime(year, month, day, hour, minute, second)
+
+    latlon = best_guess_latlon(wban_id, time)
 
     in_conus = Grids.is_in_conus_bounding_box(latlon)
 
@@ -181,7 +222,7 @@ function extract()
 
       near_any_wind_reports = any_bit_set(at_least_one_wind_report_gridded_dir, grid, year, month, day, hour, flat_is)
 
-      time_in_seconds_since_epoch_utc = Int64(Dates.datetime2unix(Dates.DateTime(year, month, day, hour, minute, second)))
+      time_in_seconds_since_epoch_utc = Int64(Dates.datetime2unix(time))
       # event_segments_around_time will return segments of 0 length for a time duration of 0, but the below is still correct in any case.
       tc_segments = Grids.event_segments_around_time(hurricane_and_tropical_storm_segments, time_in_seconds_since_epoch_utc, 0)
       near_hurricane_or_tropical_storm = any(tc_segments) do (latlon1, latlon2)
@@ -248,3 +289,7 @@ function extract()
 end
 
 extract()
+
+# 5.194524495677234% of hours missing MUCAPE or lightning info
+# Filtered: 235512
+# Rejected: 3104379
