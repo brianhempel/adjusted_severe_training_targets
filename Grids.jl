@@ -469,31 +469,6 @@ function diamond_search(predicate, grid :: Grid, center_i :: Int64, center_j :: 
   sort(matching_flat_is)
 end
 
-# function grid_to_event_neighborhoods(events :: Vector{Event}, grid :: Grids.Grid, miles :: Float64, seconds_from_utc_epoch :: Int64, seconds_before_and_after :: Int64) :: Vector{Float32}
-#   event_segments = event_segments_around_time(events, seconds_from_utc_epoch, seconds_before_and_after)
-
-#   is_near_event(latlon) = begin
-#     is_near = false
-
-#     for (latlon1, latlon2) in event_segments
-#       meters_away = GeoUtils.instant_meters_to_line(latlon, latlon1, latlon2)
-#       if meters_away <= miles * GeoUtils.METERS_PER_MILE
-#         is_near = true
-#       end
-#     end
-
-#     is_near
-#   end
-
-#   out = Vector{Float32}(undef, length(grid.latlons))
-
-#   Threads.@threads for grid_i in 1:length(grid.latlons)
-#     out[grid_i] = is_near_event(grid.latlons[grid_i]) ? 1.0f0 : 0.0f0
-#   end
-
-#   out
-# end
-
 function compute_point_areas(height, width, latlons)
   point_areas_sq_miles = zeros(Float64, height*width)
 
@@ -585,29 +560,6 @@ const grid_130_cropped = begin
   )
 end
 
-# const grid_227_cropped = begin # HREF 5km grid, cropped a bit because I have a CONUS mask for this.
-#   cells = DelimitedFiles.readdlm(joinpath(@__DIR__, "grid_227.csv"), ',', Float64; header = true)[1]
-
-#   crop = ((1+214):(1473 - 99), (1+119):(1025-228))
-
-#   crop_x_range, crop_y_range = crop
-
-#   crop_mask   = map(x_i -> x_i in crop_x_range, cells[:,1]) .& map(y_i -> y_i in crop_y_range, cells[:,2])
-#   crop_pts    = cells[crop_mask, :]
-#   crop_height = Int64(maximum(crop_pts[:,2]) - minimum(crop_pts[:,2]) + 1)
-#   crop_width  = Int64(maximum(crop_pts[:,1]) - minimum(crop_pts[:,1]) + 1)
-
-#   latlons = mapslices(crop_pts; dims=[2]) do row
-#     (row[3], row[4] > 180.0 ? row[4] - 360.0 : row[4])
-#   end[:,1]
-
-#   Grid(
-#     crop_height, # height
-#     crop_width, # width
-#     latlons
-#   )
-# end
-
 const grid_236_conus_mask = begin
   bit_vec = BitVector(undef, length(grid_236.latlons))
   read!(joinpath(@__DIR__, "grid_236_conus_mask.bits"), bit_vec)
@@ -624,22 +576,10 @@ end
 # 2.9717638823816525e6
 # Wikipedia says 2.96e6, so we are close
 
-# const grid_227_cropped_conus_mask = begin
-#   bit_vec = BitVector(undef, length(grid_227_cropped.latlons))
-#   read!(joinpath(@__DIR__, "grid_227_cropped_conus_mask.bits"), bit_vec)
-#   bit_vec
-# end
-
 # Based on closest grid 236 point
 is_in_conus(latlon :: Tuple{Float64, Float64}) = lookup_nearest(grid_236, grid_236_conus_mask, latlon)
 
 # Based on closest grid 130 point
 is_in_conus_130_cropped(latlon :: Tuple{Float64, Float64}) = lookup_nearest(grid_130_cropped, grid_130_cropped_conus_mask, latlon)
-
-# # Based on closest grid 227 point
-# function is_in_conus_227_cropped(latlon :: Tuple{Float64, Float64}) :: Bool
-#   flat_i = latlon_to_closest_grid_i(grid_227_cropped, latlon)
-#   grid_227_cropped_conus_mask[flat_i]
-# end
 
 end

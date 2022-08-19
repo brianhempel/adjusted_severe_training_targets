@@ -35,18 +35,6 @@ const asos_sig_gust_hours_per_year_grid_130_cropped_blurred_path     = joinpath(
 const asos_sig_gust_fourhours_per_year_grid_130_cropped_blurred_path = joinpath(@__DIR__, "out", "asos_sig_gust_fourhours_per_year_grid_130_cropped_blurred.csv")
 const asos_sig_gust_days_per_year_grid_130_cropped_blurred_path      = joinpath(@__DIR__, "out", "asos_sig_gust_days_per_year_grid_130_cropped_blurred.csv")
 
-# const corrections_path = joinpath(@__DIR__, "out", "weight_shifting_correction.txt") # correction factors ~6 (non-sig) and ~9 (sig)
-# const corrections_path = joinpath(@__DIR__, "out", "point_to_neighborhood_correction.txt") # correction factors ~2 (non-sig) and ~2.5 (sig)
-
-const normalization_paths = (
-  joinpath(@__DIR__, "out", "hour_normalization_grid_130_cropped.csv"),
-  joinpath(@__DIR__, "out", "fourhour_normalization_grid_130_cropped.csv"),
-  joinpath(@__DIR__, "out", "day_normalization_grid_130_cropped.csv"),
-  joinpath(@__DIR__, "out", "sig_hour_normalization_grid_130_cropped.csv"),
-  joinpath(@__DIR__, "out", "sig_fourhour_normalization_grid_130_cropped.csv"),
-  joinpath(@__DIR__, "out", "sig_day_normalization_grid_130_cropped.csv"),
-)
-
 length(estimated_reports)
 # 249176
 

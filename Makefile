@@ -21,14 +21,14 @@ grid_130.csv:
 	echo "x,y,lat,lon" > grid_130.csv
 	wgrib2 a_file_with_grid_130.grib2 -end -inv /dev/null -gridout - | ruby -e 'print STDIN.read.gsub(/ +/, "")' >> grid_130.csv
 
-grid_227.csv:
-	echo "x,y,lat,lon" > grid_227.csv
-	wgrib2 a_file_with_grid_227.grib2 -end -inv /dev/null -gridout - | ruby -e 'print STDIN.read.gsub(/ +/, "")' >> grid_227.csv
+
+# Now run the tasks in data_2003-2021/Makefile
 
 compute_asos_gustiness:
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ASOSGustiness.jl > out/asos_gustiness.csv
 
 compute_CONUS_edge_correction_factors:
+	# Points near the edge of CONUS won't have as many storm reports within 25mi. What should we multiply the storm report count by to compensate?
 	JULIA_NUM_THREADS=${CORE_COUNT} julia CONUSEdgeCorrection.jl > out/conus_25mi_edge_correction_factors_grid_130_cropped.csv
 
 compute_reports_gustiness:
@@ -36,32 +36,23 @@ compute_reports_gustiness:
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured > out/measured_reports_gustiness.csv
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl all > out/all_reports_gustiness.csv
 
-compute_reports_gustiness_halves:
-	# even 9-year periods, so we don't cut a year in half. sorry 2012
-	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2003-2011 julia ReportedGustiness.jl estimated > out/estimated_reports_gustiness_2003-2011.csv
-	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2003-2011 julia ReportedGustiness.jl measured > out/measured_reports_gustiness_2003-2011.csv
-	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2003-2011 julia ReportedGustiness.jl all > out/all_reports_gustiness_2003-2011.csv
-	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2013-2021 julia ReportedGustiness.jl estimated > out/estimated_reports_gustiness_2013-2021.csv
-	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2013-2021 julia ReportedGustiness.jl measured > out/measured_reports_gustiness_2013-2021.csv
-	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2013-2021 julia ReportedGustiness.jl all > out/all_reports_gustiness_2013-2021.csv
+# compute_reports_gustiness_halves:
+# 	# even 9-year periods, so we don't cut a year in half. sorry 2012
+# 	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2003-2011 julia ReportedGustiness.jl estimated > out/estimated_reports_gustiness_2003-2011.csv
+# 	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2003-2011 julia ReportedGustiness.jl measured > out/measured_reports_gustiness_2003-2011.csv
+# 	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2003-2011 julia ReportedGustiness.jl all > out/all_reports_gustiness_2003-2011.csv
+# 	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2013-2021 julia ReportedGustiness.jl estimated > out/estimated_reports_gustiness_2013-2021.csv
+# 	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2013-2021 julia ReportedGustiness.jl measured > out/measured_reports_gustiness_2013-2021.csv
+# 	JULIA_NUM_THREADS=${CORE_COUNT} YEAR_RANGE=2013-2021 julia ReportedGustiness.jl all > out/all_reports_gustiness_2013-2021.csv
 
 find_best_blurs:
 	JULIA_NUM_THREADS=${CORE_COUNT} julia FindBestASOSSpatialInterpolation.jl
 	JULIA_NUM_THREADS=${CORE_COUNT} julia FindBestReportsBlur.jl
 
 blur_gustiness:
-	# manually copy the blurring params found above into these scripts
+	# Manually copy the blurring params found above into these scripts.
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ApplyBestASOSSpatialInterpolation.jl
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ApplyBestReportsBlur.jl
-
-# compute_gust_point_to_neighborhood_correction:
-# 	JULIA_NUM_THREADS=${CORE_COUNT} julia PointToNeighborhoodCorrection.jl > out/point_to_neighborhood_correction.txt
-
-# compute_gust_point_to_neighborhood_correction_v2:
-# 	JULIA_NUM_THREADS=${CORE_COUNT} julia PointToNeighborhoodCorrectionV2.jl > out/point_to_neighborhood_correction_v2.txt
-
-# compute_simple_weight_shifting_correction:
-# 	JULIA_NUM_THREADS=${CORE_COUNT} julia WeightShiftingCorrection.jl > out/weight_shifting_correction.txt
 
 normalization:
 	JULIA_NUM_THREADS=${CORE_COUNT} julia MakeNormalization.jl 1
@@ -85,6 +76,7 @@ compute_reports_normalized_gustiness:
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ApplyBestReportsBlur.jl
 
 compute_verifiability_mask:
+	# I don't think I'm going to use this.
 	JULIA_NUM_THREADS=${CORE_COUNT} julia VerifiabilityMask.jl > out/verifiability_mask.csv
 	JULIA_NUM_THREADS=${CORE_COUNT} julia VerifiabilityMask.jl sig > out/verifiability_mask_sig.csv
 
