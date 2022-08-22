@@ -324,6 +324,7 @@ const stations = get_stations()
 # WBAN 03902 only has 274 days of data (not 5 years). skipping its 2 gusts
 # WBAN 03933 only has 92 days of data (not 5 years). skipping its 2 gusts
 # WBAN 03949 only has 700 days of data (not 5 years). skipping its 0 gusts
+# WBAN 03951 data quality to low. skipping its 0 gusts
 # Excluding gust at 2017-05-11T00:59:00 for WBAN 03981
 # Excluding gust at 2017-07-04T02:50:00 for WBAN 03981
 # Excluding gust at 2018-06-30T18:37:00 for WBAN 03981
@@ -369,6 +370,7 @@ const stations = get_stations()
 # Excluding gust at 2010-09-25T11:17:00 for WBAN 12926
 # Excluding gust at 2021-05-12T05:56:00 for WBAN 12926
 # Excluding gust at 2021-05-12T06:02:00 for WBAN 12926
+# WBAN 12944 data quality to low. skipping its 0 gusts
 # WBAN 12946 only has 334 days of data (not 5 years). skipping its 4 gusts
 # Excluding gust at 2017-05-20T20:44:00 for WBAN 12947
 # Excluding gust at 2018-03-29T03:07:00 for WBAN 12947
@@ -648,15 +650,15 @@ const stations = get_stations()
 # Excluding gust at 2005-06-29T10:43:00 for WBAN 94943
 # 490 gusts discarded (from bad stations or bad time ranges)
 # Max ASOS station distance errors:
-# 03965   3889.816 meters (36.1312, -97.0697)
-# 23081   3262.2146 meters        (35.5160775, -108.78259)
-# 26451   2850.1172 meters        (61.17190111111111, -150.0250955555556)
-# 13841   2682.4297 meters        (39.423809999999996, -83.80677333333334)
-# 94846   2579.9368 meters        (41.983396666666664, -87.93294666666667)
-# 26412   2121.8218 meters        (62.961545, -141.945985)
-# 14939   2005.6553 meters        (40.84702, -96.75318499999999)
-# 94823   1873.23 meters  (40.487958000000006, -80.21774200000002)
-# 26616   1733.5525 meters        (66.87277999999999, -162.62111000000002)
-# 12916   1719.7272 meters        (29.99450333333333, -90.25990333333334)
+# 03965 3889.816  meters (36.1312,            -97.0697)
+# 23081 3262.2146 meters (35.5160775,         -108.78259)
+# 26451 2850.1172 meters (61.17190111111111,  -150.0250955555556)
+# 13841 2682.4297 meters (39.423809999999996, -83.80677333333334)
+# 94846 2579.9368 meters (41.983396666666664, -87.93294666666667)
+# 26412 2121.8218 meters (62.961545,          -141.945985)
+# 14939 2005.6553 meters (40.84702,           -96.75318499999999)
+# 94823 1873.23   meters (40.487958000000006, -80.21774200000002)
+# 26616 1733.5525 meters (66.87277999999999,  -162.62111000000002)
+# 12916 1719.7272 meters (29.99450333333333,  -90.25990333333334)
 
 end
