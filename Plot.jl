@@ -259,13 +259,13 @@ function plot_reports()
   end
 end
 
-# plot_asos()
+plot_asos()
 plot_reports()
 
-# @sync begin
-#   @async plot_one("verifiability_mask",     nothing, joinpath(@__DIR__, "out", "verifiability_mask.csv");     zlow = 0, zhigh = 1, steps = 1, colors = colors_path_normalization, label_contours = false)
-#   @async plot_one("verifiability_mask_sig", nothing, joinpath(@__DIR__, "out", "verifiability_mask_sig.csv"); zlow = 0, zhigh = 1, steps = 1, colors = colors_path_normalization, label_contours = false)
-# end
+@sync begin
+  @async plot_one("verifiability_mask",     nothing, joinpath(@__DIR__, "out", "verifiability_mask.csv");     zlow = 0, zhigh = 1, steps = 1, colors = colors_path_normalization, label_contours = false)
+  @async plot_one("verifiability_mask_sig", nothing, joinpath(@__DIR__, "out", "verifiability_mask_sig.csv"); zlow = 0, zhigh = 1, steps = 1, colors = colors_path_normalization, label_contours = false)
+end
 
 # import Grids
 # push!(LOAD_PATH, joinpath(@__DIR__, "data_2003-2021", "storm_data_reports"))
