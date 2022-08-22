@@ -222,10 +222,10 @@ out/sig_fourhour_x1_normalization_grid_130_cropped.csv
 out/sig_hour_x1_normalization_grid_130_cropped.csv
 ```
 
-These files are on the 13km [AWIPS grid 130](https://www.nco.ncep.noaa.gov/pmb/docs/on388/tableb.html#GRID130), with [some rows and columns on the edges cropped off](https://github.com/brianhempel/adjusted_severe_training_targets/blob/d3e23a6437ef51dccd79606d61b1691ec82eb418/Grids.jl#L539-L561) to better fit the CONUS. The file `a_file_with_grid_130_cropped.grib2` is an example grib2 file with the cropped grid, and here are the cropped grid specs:
+These files are on the 13km [AWIPS grid 130](https://www.nco.ncep.noaa.gov/pmb/docs/on388/tableb.html#GRID130), with [some rows and columns on the edges cropped off](https://github.com/brianhempel/adjusted_severe_training_targets/blob/d3e23a6437ef51dccd79606d61b1691ec82eb418/Grids.jl#L539-L561) to better fit the CONUS. The file `a_file_with_grid_130_cropped.grib2` is an example grib2 file with the cropped grid, and these are the cropped grid specs:
 
 ```
-wgrib2 a_file_with_grid_130_cropped.grib2 -grid
+$ wgrib2 a_file_with_grid_130_cropped.grib2 -grid
 1:0:grid_template=30:winds(grid):
         Lambert Conformal: (437 x 256) input WE:SN output WE:SN res 56
         Lat1 19.724000 Lon1 234.856000 LoV 265.000000
