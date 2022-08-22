@@ -12,8 +12,8 @@ const wind_reports_path = joinpath(@__DIR__, "..", "storm_data_reports", "wind_r
 const out_dir          = @__DIR__
 
 
-MINUTE = 60
-HOUR   = 60*MINUTE
+const MINUTE = 60
+const HOUR   = 60*MINUTE
 
 struct Report
   start_time                   :: Dates.DateTime

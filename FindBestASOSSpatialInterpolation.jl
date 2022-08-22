@@ -69,7 +69,7 @@ for nneighbors in [1,2,3,4,5,6,7,8,9,10,12,15,20,25,30,35,40,45,50,60,70,80,90,1
       Threads.threadid() == 3 && (day_mad      = try_it(station_latlons, station_day_gustinesses,      nneighbors, WeightedKNN.gaussian(σ_km)))
     end
     mean_mad = mean([hour_mad, fourhour_mad, day_mad])
-    println(join([nneighbors, σ_km, Float32(hour_mad), Float32(fourhour_mad), Float32(day_mad), Float32(mean_mad)], "\t"))
+    println(join(Any[nneighbors, σ_km, Float32(hour_mad), Float32(fourhour_mad), Float32(day_mad), Float32(mean_mad)], "\t"))
 
     if mean_mad < best[1]
       best = (mean_mad, nneighbors, σ_km)

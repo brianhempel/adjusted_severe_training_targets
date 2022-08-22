@@ -177,7 +177,7 @@ function cross_validate(name, reports_gridded)
   for σ_km in σ_kms
     mean_mad = try_it(σ_km, reports_gridded)
 
-    println(join([σ_km, Float32(mean_mad)], "\t"))
+    println(join(Any[σ_km, Float32(mean_mad)], "\t"))
 
     if mean_mad < best[1]
       best = (mean_mad, σ_km)

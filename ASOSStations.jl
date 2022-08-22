@@ -3,17 +3,22 @@ module ASOSStations
 import Dates
 
 push!(LOAD_PATH, @__DIR__)
+push!(LOAD_PATH, joinpath(@__DIR__, "data_2003-2021", "asos_1_min_measured_gusts"))
 
 import Grids
 using Utils
 
+import StationInfos
+const station_infos = StationInfos.station_infos
+const nrow          = StationInfos.DataFrames.nrow
+
 const min_years_of_data_to_count = 5
 
-# time_str,time_seconds,wban_id,name,state,county,knots,gust_knots,lat,lon,near_any_wind_reports,near_hurricane_or_tropical_storm
-# 2003-04-13 04:44:00 UTC,1050209040,94012,HAVRE CITY COUNTY AP,MT,HILL,29,52,48.5428,-109.7633,false,false
-# 2003-04-15 21:51:00 UTC,1050443460,23042,LUBBOCK INTERNATIONAL AP,TX,LUBBOCK,39,51,33.6656,-101.8231,false,false
-# 2003-04-15 22:05:00 UTC,1050444300,23042,LUBBOCK INTERNATIONAL AP,TX,LUBBOCK,43,52,33.6656,-101.8231,false,false
-# 2003-04-15 23:54:00 UTC,1050450840,23042,LUBBOCK INTERNATIONAL AP,TX,LUBBOCK,46,58,33.6656,-101.8231,false,false
+# time_str,time_seconds,wban_id,name,state,knots,gust_knots,near_any_wind_reports,near_hurricane_or_tropical_storm
+# 2003-04-13 04:44:00 UTC,1050209040,94012,HAVRE CITY COUNTY AP,MT,29,52,false,false
+# 2003-04-15 21:51:00 UTC,1050443460,23042,LUBBOCK INTERNATIONAL AP,TX,39,51,false,false
+# 2003-04-15 22:05:00 UTC,1050444300,23042,LUBBOCK INTERNATIONAL AP,TX,43,52,false,false
+# 2003-04-15 23:54:00 UTC,1050450840,23042,LUBBOCK INTERNATIONAL AP,TX,46,58,false,false
 
 struct Gust
   time                   :: Dates.DateTime
@@ -31,7 +36,7 @@ function get_gusts(path)
       headers = split(line, ',')
       continue
     end
-    time_str, time_seconds_str, wban_id, name, state, county, knots_str, gust_knots_str, lat_str, lon_str, near_any_wind_reports, near_hurricane_or_tropical_storm = split(line, ',')
+    time_str, time_seconds_str, wban_id, name, state, knots_str, gust_knots_str, near_any_wind_reports, near_hurricane_or_tropical_storm = split(line, ',')
 
     push!(gusts,
       Gust(
@@ -81,11 +86,6 @@ struct Station
 end
 
 const stations_uptime_path = (@__DIR__) * "/data_2003-2021/asos_1_min_measured_gusts/which_asos_months_look_good.csv"
-
-
-import StationInfos
-
-const station_infos = StationInfos.station_infos
 
 
 # "2022-10"
