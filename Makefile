@@ -21,6 +21,16 @@ grid_130.csv:
 	echo "x,y,lat,lon" > grid_130.csv
 	wgrib2 a_file_with_grid_130.grib2 -end -inv /dev/null -gridout - | ruby -e 'print STDIN.read.gsub(/ +/, "")' >> grid_130.csv
 
+a_file_with_grid_130_cropped.grib2:
+	echo "Uncropped grid 130:"
+	wgrib2 a_file_with_grid_130.grib2 -grid
+	# https://www.cpc.ncep.noaa.gov/products/wesley/wgrib2/new_grid.html
+	wgrib2 a_file_with_grid_130.grib2 -new_grid_winds grid -new_grid lambert:265.000000:25.000000:25.000000:25.000000 234.856:437:13545.000000 19.724:256:13545.000000 a_file_with_grid_130_cropped.grib2
+	echo "Cropped grid 130:"
+	wgrib2 a_file_with_grid_130_cropped.grib2 -grid
+	# wgrib2 a_file_with_grid_130_cropped.grib2 -end -inv /dev/null -gridout - | ruby -e 'print STDIN.read.gsub(/ +/, "")' >> grid_130_cropped.csv
+
+
 
 # Now run the tasks in data_2003-2021/Makefile
 

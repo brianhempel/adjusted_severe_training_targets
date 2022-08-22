@@ -62,3 +62,32 @@ out/sig_hour_x1_normalization_grid_130_cropped.csv
 ```
 
 ...which are the normalization factors of how much a Storm Data estimated wind report at some location should be multiplied by to match the severe/sigsevere day/hourhour/hour ASOS gust climatology. The "x1" means the normalization factors are trying to make estimated reports match `g * 1`, where `g` is the ASOS gust rate at a point and `1` is a corretion factor. The ASOS climatology is gustiness at a point, not in a neighborhood, so there is an argument that `g` should be multiplied by some larger correction factor to convert the gust rate at a point to a 25mi radius neighborhood gust rate. But I cannot reasonably figure out what that correction factor is. It might be ~10. But any factor higher than 1 causes the estimated report climatology to no longer match the ASOS climatology as well. In other words, more of CONUS gets the max normalization of 1 so the adjusted estimated report climatology looks more like the unadjusted estimated report climatology. (If we could make a single report count more than 1, we wouldn't have this problem, but that is a bad idea, especially for estimated reports.) If you would like to compute and plot the resulting normalizations for higher correction factors, uncomment the appropriate lines in the Makefile.
+
+These output files are on the 13km [AWIPS grid 130](https://www.nco.ncep.noaa.gov/pmb/docs/on388/tableb.html#GRID130), with [some rows and columns on the edges cropped off](https://github.com/brianhempel/adjusted_severe_training_targets/blob/d3e23a6437ef51dccd79606d61b1691ec82eb418/Grids.jl#L539-L561) to better fit the CONUS. The file `a_file_with_grid_130_cropped.grib2` is an example grib2 file with the cropped grid, and here are the cropped grid specs:
+
+```
+wgrib2 a_file_with_grid_130_cropped.grib2 -grid
+1:0:grid_template=30:winds(grid):
+        Lambert Conformal: (437 x 256) input WE:SN output WE:SN res 56
+        Lat1 19.724000 Lon1 234.856000 LoV 265.000000
+        LatD 25.000000 Latin1 25.000000 Latin2 25.000000
+        LatSP -90.000000 LonSP 0.000000
+        North Pole (437 x 256) Dx 13545.000000 m Dy 13545.000000 m 
+```
+
+The rows in all the output CSVs are in the same order as that produced by the dumping all the gridpoint coordinates with `wgrib2 a_file_with_grid_130_cropped.grib2 -end -inv /dev/null -gridout -`.
+
+```
+         1,         1, 19.724, 234.856
+         2,         1, 19.751, 234.982
+         3,         1, 19.777, 235.107
+         4,         1, 19.804, 235.233
+         5,         1, 19.830, 235.359
+         6,         1, 19.856, 235.485
+         7,         1, 19.883, 235.611
+         8,         1, 19.909, 235.737
+         9,         1, 19.935, 235.863
+        10,         1, 19.960, 235.989
+...
+```
+
