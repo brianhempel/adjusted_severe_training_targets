@@ -116,7 +116,8 @@ function do_it(prefix, reports_gustiness_path, σ_km, σ_km_sig)
 end
 
 do_it("estimated", estimated_reports_gustiness_path, 7, 25)
-do_it("measured", measured_reports_gustiness_path, 5, 0)
+do_it("measured",  measured_reports_gustiness_path,  5, 0)
+do_it("all",       all_reports_gustiness_path,       7, 25) # There are more measured reports, so use its blur params.
 for correction_factor in 1:10
   if isfile(estimated_reports_normalized_gustiness_path(correction_factor))
     do_it("estimated_x$(correction_factor)_normalized", estimated_reports_normalized_gustiness_path(correction_factor), 7, 25)
@@ -124,7 +125,7 @@ for correction_factor in 1:10
 end
 for correction_factor in 1:10
   if isfile(estimated_reports_normalized_plus_measured_reports_gustiness_path(correction_factor))
-    do_it("estimated_x$(correction_factor)_normalized_plus_measured", estimated_reports_normalized_plus_measured_reports_gustiness_path(correction_factor), 7, 25)
+    do_it("estimated_x$(correction_factor)_normalized_plus_measured", estimated_reports_normalized_plus_measured_reports_gustiness_path(correction_factor), 7, 25) # There are more measured reports, so use its blur params.
   end
 end
 

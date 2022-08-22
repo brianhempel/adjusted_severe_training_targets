@@ -2,7 +2,7 @@
 
 Thunderstorm wind reports in [Storm Data](https://www.ncdc.noaa.gov/stormevents/) are coded as either "estimated" (i.e. from damage) or "measured" from an instrument. For severe wind (50+ knots), most reports (89%) are estimated, whereas only a few (11%) are measured.
 
-Estimated reports skew towards the eastern CONUS (number within 25 miles shown below).
+Estimated reports skew towards the eastern CONUS (number of report-hours per year shown below, using a 25mi radius to look for reports).
 
 ![estimated_report_hours_per_year](plots/estimated_report_hours_per_year.png)
 
@@ -14,7 +14,7 @@ Together, the overall report climatology skews eastward because there are so man
 
 ![all_report_hours_per_year](plots/all_report_hours_per_year.png)
 
-But, as shown in [Smith et al 2013](https://www.spc.noaa.gov/publications/smith/waf-wind.pdf) and recomputed here for 2003-2021 timeframe, [ASOS](https://www.ncei.noaa.gov/products/land-based-station/automated-surface-weather-observing-systems) permanent weather stations measure more gusts in the plains, not the east.
+But, as shown in [Smith et al 2013](https://www.spc.noaa.gov/publications/smith/waf-wind.pdf) and recomputed here for 2003-2021 timeframe, [ASOS](https://www.ncei.noaa.gov/products/land-based-station/automated-surface-weather-observing-systems) permanent weather stations measure more gusts in the plains, not the east. (The scale here is gust-hours per year at a point, without considering a neighborhood.)
 
 ![asos_gust_hours_per_year](plots/asos_gust_hours_per_year.png)
 
@@ -24,7 +24,7 @@ This project computes an adjustment factor for estimated wind reports so they ma
 
 ![hour_x1_normalization](plots/hour_x1_normalization.png)
 
-This normalization results in a climatology of estimated wind reports that, in relative magnitudes at least, approximates that measured by ASOS stations:
+This normalization results in an adjusted climatology of estimated wind reports that approximates that measured by ASOS stations:
 
 ![estimated_x1_normalized_report_hours_per_year](plots/estimated_x1_normalized_report_hours_per_year.png)
 

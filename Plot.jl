@@ -39,6 +39,13 @@ const measured_sig_report_hours_per_year_grid_130_cropped_blurred_path     = joi
 const measured_sig_report_fourhours_per_year_grid_130_cropped_blurred_path = joinpath(@__DIR__, "out", "measured_sig_report_fourhours_per_year_grid_130_cropped_blurred.csv")
 const measured_sig_report_days_per_year_grid_130_cropped_blurred_path      = joinpath(@__DIR__, "out", "measured_sig_report_days_per_year_grid_130_cropped_blurred.csv")
 
+const all_report_hours_per_year_grid_130_cropped_blurred_path         = joinpath(@__DIR__, "out", "all_report_hours_per_year_grid_130_cropped_blurred.csv")
+const all_report_fourhours_per_year_grid_130_cropped_blurred_path     = joinpath(@__DIR__, "out", "all_report_fourhours_per_year_grid_130_cropped_blurred.csv")
+const all_report_days_per_year_grid_130_cropped_blurred_path          = joinpath(@__DIR__, "out", "all_report_days_per_year_grid_130_cropped_blurred.csv")
+const all_sig_report_hours_per_year_grid_130_cropped_blurred_path     = joinpath(@__DIR__, "out", "all_sig_report_hours_per_year_grid_130_cropped_blurred.csv")
+const all_sig_report_fourhours_per_year_grid_130_cropped_blurred_path = joinpath(@__DIR__, "out", "all_sig_report_fourhours_per_year_grid_130_cropped_blurred.csv")
+const all_sig_report_days_per_year_grid_130_cropped_blurred_path      = joinpath(@__DIR__, "out", "all_sig_report_days_per_year_grid_130_cropped_blurred.csv")
+
 estimated_normalized_plus_measured_report_hours_per_year_grid_130_cropped_blurred_path(factor)         = joinpath(@__DIR__, "out", "estimated_x$(factor)_normalized_plus_measured_report_hours_per_year_grid_130_cropped_blurred.csv")
 estimated_normalized_plus_measured_report_fourhours_per_year_grid_130_cropped_blurred_path(factor)     = joinpath(@__DIR__, "out", "estimated_x$(factor)_normalized_plus_measured_report_fourhours_per_year_grid_130_cropped_blurred.csv")
 estimated_normalized_plus_measured_report_days_per_year_grid_130_cropped_blurred_path(factor)          = joinpath(@__DIR__, "out", "estimated_x$(factor)_normalized_plus_measured_report_days_per_year_grid_130_cropped_blurred.csv")
@@ -227,6 +234,15 @@ function plot_reports()
     @async plot_one("measured_sig_report_hours_per_year",     nothing, measured_sig_report_hours_per_year_grid_130_cropped_blurred_path;     zlow = 0, zhigh = 2,  steps = 10,  colors = colors_path_2)
     @async plot_one("measured_sig_report_fourhours_per_year", nothing, measured_sig_report_fourhours_per_year_grid_130_cropped_blurred_path; zlow = 0, zhigh = 2,  steps = 10,  colors = colors_path_2)
     @async plot_one("measured_sig_report_days_per_year",      nothing, measured_sig_report_days_per_year_grid_130_cropped_blurred_path;      zlow = 0, zhigh = 2,  steps = 10,  colors = colors_path_2)
+  end
+
+  @sync begin
+    @async plot_one("all_report_hours_per_year",         nothing, all_report_hours_per_year_grid_130_cropped_blurred_path;         zlow = 0, zhigh = 40, steps = 10, colors = colors_path_40)
+    @async plot_one("all_report_fourhours_per_year",     nothing, all_report_fourhours_per_year_grid_130_cropped_blurred_path;     zlow = 0, zhigh = 40, steps = 10, colors = colors_path_40)
+    @async plot_one("all_report_days_per_year",          nothing, all_report_days_per_year_grid_130_cropped_blurred_path;          zlow = 0, zhigh = 40, steps = 10, colors = colors_path_40)
+    @async plot_one("all_sig_report_hours_per_year",     nothing, all_sig_report_hours_per_year_grid_130_cropped_blurred_path;     zlow = 0, zhigh = 5,  steps = 5,  colors = colors_path_5)
+    @async plot_one("all_sig_report_fourhours_per_year", nothing, all_sig_report_fourhours_per_year_grid_130_cropped_blurred_path; zlow = 0, zhigh = 5,  steps = 5,  colors = colors_path_5)
+    @async plot_one("all_sig_report_days_per_year",      nothing, all_sig_report_days_per_year_grid_130_cropped_blurred_path;      zlow = 0, zhigh = 5,  steps = 5,  colors = colors_path_5)
   end
 
   for correction_factor in 1:10
