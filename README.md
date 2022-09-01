@@ -34,6 +34,10 @@ These normalized estimated wind reports may be added back to the measured wind r
 
 ## Methodology
 
+The above process consists of three steps: compiling a "ground truth" gustiness, preparing a climatology of estimated severe wind reports, and computing normalization factors to apply to the estimated reports.
+
+### "Ground Truth" Gustiness
+
 The key step in the above process is computing the "ground truth" gustiness measured by ASOS permanent weather stations (the fourth plot in the previous section). Our methodology is based on that of Smith et al, albeit for the 2003-2021 time period.
 
 > Smith, B. T., Castellanos, T. E., Winters, A. C., Mead, C. M., Dean, A. R., & Thompson, R. L. Measured Severe Convective Wind Climatology and Associated Convective Modes of Thunderstorms in the Contiguous United States, 2003–09. Weather and Forecasting, 2013. https://doi.org/10.1175/WAF-D-12-00096.1
@@ -77,11 +81,13 @@ We use the [ASOS 1 minute wind data from NCEI](https://www.ncei.noaa.gov/product
 
 6. For each ASOS station, we determine a time range of quality data. Ignoring months that have no 1 minute observations that passed quality control, we determine a longest time range over which, in total, ≥90% of the one minute observations are available. Stations with at least five years of data are retained for subsequent steps, and only gusts within the high quality time range are considered.
 
-The above results in 7653 station-gust-hours across 866 stations, of which 687 stations have at least one gust. Since each of the 866 stations has a different period of quality data, each station's gustiness is reported as a rate per year. Dots below are individual stations. The final climatology (shaded) is computed as the weighted mean of the *k*-nearest stations, where *k*=12 and the neighbor weights are determined by a spatial Gaussian with σ=150km. These parameters were chosen by hold-out validation: for each 40km gridpoint in the CONUS, the nearest station was removed and its gustiness estimated using various values of *k* and σ. The parameters that resulted in the lowest mean absolute deviations to held-out station were *k*=12 and σ=150km.
+The above results in 7653 station-gust-hours across 866 stations, of which 687 stations have at least one gust. Since each of the 866 stations has a different period of quality data, each station's gustiness is reported as a rate per year. Dots below are individual stations. The final climatology (shaded) is computed as the weighted mean of the *k*-nearest stations, where *k*=12 and the neighbor weights are determined by a spatial Gaussian with σ=150km. These parameters were chosen by hold-one-out validation: for each 40km gridpoint in the CONUS, the nearest station was removed and its gustiness estimated using various values of *k* and σ. Overall the parameters that resulted in the lowest mean absolute deviations to the held-out stations were *k*=12 and σ=150km. For significant severe gusts (≥65kn), the best interpolation was achieved by *k*=30, σ=125km.
+
+ML models for severe weather forecasting are commonly trained for daily, hourly, or four-hourly periods. ASOS gustiness is computed for each such period, as well as for significant severe gusts.
+
+ASOS severe gust hours per year:
 
 ![asos_gust_hours_per_year](plots/asos_gust_hours_per_year.png)
-
-ML models are commonly trained for daily, hourly, or four-hourly periods. ASOS gustiness is computed for each such period, as well as for significant severe gusts (≥65kn). For significant severe gusts, the best interpolation was achieved by *k*=30, σ=125km.
 
 ASOS severe gust four-hours per year:
 
@@ -102,6 +108,8 @@ ASOS significant severe gust four-hours per year:
 ASOS significant severe gust days per year:
 
 ![asos_sig_gust_days_per_year](plots/asos_sig_gust_days_per_year.png)
+
+### Reported Gustiness
 
 Estimated severe (and significant severe) Storm Reports from Storm Data over 2003-2021 were gridded. On a 13km grid, the reports within 25mi of each point are clamped to at most 1 per hour (and four-hour and day) period. A Gaussian smoother of σ=7km is applied (σ=25km for significant severe reports), with these parameters chosen to minimize the mean absolute deviation in 5-fold cross validation, which each convective week assigned to a different fold. For points within 25 miles of the CONUS edge, the number of reports per period is altered upward according to the portion of the surrounding 25 miles that lies within the CONUS, e.g. a point exactly on the straight portion of the border with Canada will have its report count doubled because only half of its surrounding 25 miles can produce reports. This alteration is performed because the ASOS climatology does not have a similar edge artifact. (Skipping this step results in normalization factors that upweight reports on the edge of CONUS. This is arguably desirable. But edges, if considered at all, might better be handled in an explicit step in the ML pipeline.)
 
@@ -131,7 +139,9 @@ Significant severe wind estimated report days per year:
 
 ![estimated_sig_report_days_per_year](plots/estimated_sig_report_days_per_year.png)
 
-Normalization factors are computed to make the estimated reporting rate match the ASOS measured gustiness. The normalization factors are each a number *n* between 0.0 and 1.0 such that each estimated report, instead of counting as 1 severe wind gust, counts as *n* severe wind gusts. As before, the sum of reweighted reports is clamped to at most 1 per period, so the math to compute these normalization factors is not a straightforward division. Instead, the normalization factors are discovered by binary search. The normalization factors for each location in CONUS are shown below.
+### Normalization Factors
+
+Normalization factors are computed to make the estimated reporting rate match the ASOS measured gustiness. The normalization factors are each a number *y* between 0.0 and 1.0 such that each estimated report, instead of counting as 1 severe wind gust, counts as *y* severe wind gusts. As before, the sum of reweighted reports is clamped to at most 1 per period, so the math to compute these normalization factors is not a straightforward division. Instead, the normalization factors are discovered by binary search. The normalization factors for each location in CONUS are shown below.
 
 Severe wind hour-based normalization factors:
 
@@ -279,4 +289,4 @@ out/sig_fourhour_x1_normalization_grid_130_cropped.csv
 out/sig_hour_x1_normalization_grid_130_cropped.csv
 ```
 
-...which are the normalization factors of how much a Storm Data estimated wind report at some location should be multiplied by to match the severe/sigsevere day/hourhour/hour ASOS gust climatology. The "x1" means the normalization factors are trying to make estimated reports match `g * 1`, where `g` is the ASOS gust rate at a point and `1` is a corretion factor. The ASOS climatology is gustiness at a point, not in a neighborhood, so there is an argument that `g` should be multiplied by some larger correction factor to convert the gust rate at a point to a 25mi radius neighborhood gust rate. But, I cannot reasonably figure out what that correction factor is. It might be ~10. And any factor higher than 1 causes the estimated report climatology to no longer match the ASOS climatology as well because more of CONUS gets the max normalization of 1 so that the adjusted report climatology looks more like the unadjusted report climatology. (If we could make a single report count more than 1, we wouldn't have this problem, but that is a bad idea, especially for estimated reports.) If you would like to compute and plot the resulting normalizations for higher correction factors, uncomment the appropriate lines in the Makefile.
+...which are the normalization factors of how much a Storm Data estimated wind report at some location should be multiplied by to match the severe/sigsevere day/hourhour/hour ASOS gust climatology. The "x1" means the normalization factors are trying to make estimated reports match `g * 1`, where `g` is the ASOS gust rate at a point and `1` is a corretion factor. The ASOS climatology is gustiness at a point, not in a neighborhood, so there is an argument that `g` should be multiplied by some larger correction factor to convert the gust rate at a point to a 25mi radius neighborhood gust rate. But, I cannot reasonably figure out what that correction factor is. It might be ~10. And any factor higher than 1 causes the estimated report climatology to no longer match the ASOS climatology as well because more of CONUS gets the max normalization of 1, causing the adjusted report climatology to look more like the unadjusted report climatology. (If we could make a single report count more than 1, we wouldn't have this problem, but that is a bad idea, especially for estimated reports.) If you would like to compute and plot the resulting normalizations for higher correction factors, uncomment the appropriate lines in the Makefile.
