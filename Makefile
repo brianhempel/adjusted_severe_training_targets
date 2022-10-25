@@ -64,25 +64,25 @@ blur_gustiness:
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ApplyBestASOSSpatialInterpolation.jl
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ApplyBestReportsBlur.jl
 
-normalization:
-	JULIA_NUM_THREADS=${CORE_COUNT} julia MakeNormalization.jl 1
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia MakeNormalization.jl 1 2 3 4 5 6 10
+reweighting:
+	JULIA_NUM_THREADS=${CORE_COUNT} julia MakeReweighting.jl 1
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia MakeReweighting.jl 1 2 3 4 5 6 10
 
-compute_reports_normalized_gustiness:
-	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_normalized x1_normalization_grid_130_cropped > out/estimated_reports_x1_normalized_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_normalized x2_normalization_grid_130_cropped > out/estimated_reports_x2_normalized_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_normalized x3_normalization_grid_130_cropped > out/estimated_reports_x3_normalized_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_normalized x4_normalization_grid_130_cropped > out/estimated_reports_x4_normalized_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_normalized x5_normalization_grid_130_cropped > out/estimated_reports_x5_normalized_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_normalized x6_normalization_grid_130_cropped > out/estimated_reports_x6_normalized_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_normalized x10_normalization_grid_130_cropped > out/estimated_reports_x10_normalized_gustiness.csv
-	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_normalized x1_normalization_grid_130_cropped > out/estimated_reports_x1_normalized_plus_measured_reports_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_normalized x2_normalization_grid_130_cropped > out/estimated_reports_x2_normalized_plus_measured_reports_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_normalized x3_normalization_grid_130_cropped > out/estimated_reports_x3_normalized_plus_measured_reports_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_normalized x4_normalization_grid_130_cropped > out/estimated_reports_x4_normalized_plus_measured_reports_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_normalized x5_normalization_grid_130_cropped > out/estimated_reports_x5_normalized_plus_measured_reports_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_normalized x6_normalization_grid_130_cropped > out/estimated_reports_x6_normalized_plus_measured_reports_gustiness.csv
-	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_normalized x10_normalization_grid_130_cropped > out/estimated_reports_x10_normalized_plus_measured_reports_gustiness.csv
+compute_reports_reweighted_gustiness:
+	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_reweighted x1_reweighting_grid_130_cropped > out/estimated_reports_x1_reweighted_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_reweighted x2_reweighting_grid_130_cropped > out/estimated_reports_x2_reweighted_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_reweighted x3_reweighting_grid_130_cropped > out/estimated_reports_x3_reweighted_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_reweighted x4_reweighting_grid_130_cropped > out/estimated_reports_x4_reweighted_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_reweighted x5_reweighting_grid_130_cropped > out/estimated_reports_x5_reweighted_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_reweighted x6_reweighting_grid_130_cropped > out/estimated_reports_x6_reweighted_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_reweighted x10_reweighting_grid_130_cropped > out/estimated_reports_x10_reweighted_gustiness.csv
+	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_reweighted x1_reweighting_grid_130_cropped > out/estimated_reports_x1_reweighted_plus_measured_reports_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_reweighted x2_reweighting_grid_130_cropped > out/estimated_reports_x2_reweighted_plus_measured_reports_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_reweighted x3_reweighting_grid_130_cropped > out/estimated_reports_x3_reweighted_plus_measured_reports_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_reweighted x4_reweighting_grid_130_cropped > out/estimated_reports_x4_reweighted_plus_measured_reports_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_reweighted x5_reweighting_grid_130_cropped > out/estimated_reports_x5_reweighted_plus_measured_reports_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_reweighted x6_reweighting_grid_130_cropped > out/estimated_reports_x6_reweighted_plus_measured_reports_gustiness.csv
+	# JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured+estimated_reweighted x10_reweighting_grid_130_cropped > out/estimated_reports_x10_reweighted_plus_measured_reports_gustiness.csv
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ApplyBestReportsBlur.jl
 
 compute_verifiability_mask:

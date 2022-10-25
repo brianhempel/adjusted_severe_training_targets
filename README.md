@@ -16,25 +16,25 @@ Together, the overall report climatology skews eastward because there are so man
 
 But, as shown in [Smith et al 2013](https://www.spc.noaa.gov/publications/smith/waf-wind.pdf) and recomputed here for 2003-2021 timeframe, [ASOS](https://www.ncei.noaa.gov/products/land-based-station/automated-surface-weather-observing-systems) permanent weather stations measure more gusts in the plains, not the east. (The scale here is gust-hours per year at a point, without considering a neighborhood.)
 
-![asos_gust_hours_per_year](plots/asos_gust_hours_per_year.png)
+![asos_severe_gust_hours_per_year](plots/asos_severe_gust_hours_per_year.png)
 
 Reports are not telling the real story. This discrepancy is a problem for ML trained against reports. Given enough features, the ML model will learn that the east is windier, but that is not true. Training against weather stations alone is not reasonable because there are not enough of them for adequate spacial coverage.
 
 This project computes an adjustment factor for estimated wind reports so they match the climatology of ASOS-measured severe wind gusts. Each estimated wind report is multiplied by a weight (below) based on its location in the CONUS.
 
-![hour_x1_normalization](plots/hour_x1_normalization.png)
+![hour_x1_reweighting](plots/hour_x1_reweighting_factors.png)
 
-This normalization results in an adjusted climatology of estimated wind reports that approximates that measured by ASOS stations:
+This reweighting results in an adjusted climatology of estimated wind reports that approximates that measured by ASOS stations:
 
-![estimated_x1_normalized_report_hours_per_year](plots/estimated_x1_normalized_report_hours_per_year.png)
+![estimated_x1_reweighted_report_hours_per_year](plots/estimated_x1_reweighted_report_hours_per_year.png)
 
-These normalized estimated wind reports may be added back to the measured wind reports to create a training target for ML (so long as the ML algorithm can handle labels with fractional values between 0 and 1.0).
+These reweighted estimated wind reports may be added back to the measured wind reports to create a training target for ML (so long as the ML algorithm can handle labels with fractional values between 0 and 1.0).
 
-![estimated_x1_normalized_plus_measured_report_hours_per_year](plots/estimated_x1_normalized_plus_measured_report_hours_per_year.png)
+![estimated_x1_reweighted_plus_measured_report_hours_per_year](plots/estimated_x1_reweighted_plus_measured_report_hours_per_year.png)
 
 ## Methodology
 
-The above process consists of three steps: compiling a "ground truth" gustiness, preparing a climatology of estimated severe wind reports, and computing normalization factors to apply to the estimated reports.
+The above process consists of three steps: compiling a "ground truth" gustiness, preparing a climatology of estimated severe wind reports, and computing reweighting factors to apply to the estimated reports.
 
 ### "Ground Truth" Gustiness
 
@@ -87,15 +87,15 @@ ML models for severe weather forecasting are commonly trained for daily, hourly,
 
 ASOS severe gust hours per year:
 
-![asos_gust_hours_per_year](plots/asos_gust_hours_per_year.png)
+![asos_severe_gust_hours_per_year](plots/asos_severe_gust_hours_per_year.png)
 
 ASOS severe gust four-hours per year:
 
-![asos_gust_fourhours_per_year](plots/asos_gust_fourhours_per_year.png)
+![asos_severe_gust_fourhours_per_year](plots/asos_severe_gust_fourhours_per_year.png)
 
 ASOS severe gust days per year:
 
-![asos_gust_days_per_year](plots/asos_gust_days_per_year.png)
+![asos_severe_gust_days_per_year](plots/asos_severe_gust_days_per_year.png)
 
 ASOS significant severe gust hours per year:
 
@@ -111,7 +111,7 @@ ASOS significant severe gust days per year:
 
 ### Reported Gustiness
 
-Estimated severe (and significant severe) Storm Reports from Storm Data over 2003-2021 were gridded. On a 13km grid, the reports within 25mi of each point are clamped to at most 1 per hour (and four-hour and day) period. A Gaussian smoother of σ=7km is applied (σ=25km for significant severe reports), with these parameters chosen to minimize the mean absolute deviation in 5-fold cross validation, which each convective week assigned to a different fold. For points within 25 miles of the CONUS edge, the number of reports per period is altered upward according to the portion of the surrounding 25 miles that lies within the CONUS, e.g. a point exactly on the straight portion of the border with Canada will have its report count doubled because only half of its surrounding 25 miles can produce reports. This alteration is performed because the ASOS climatology does not have a similar edge artifact. (Skipping this step results in normalization factors that upweight reports on the edge of CONUS. This is arguably desirable. But edges, if considered at all, might better be handled in an explicit step in the ML pipeline.)
+Estimated severe (and significant severe) Storm Reports from Storm Data over 2003-2021 were gridded. On a 13km grid, the reports within 25mi of each point are clamped to at most 1 per hour (and four-hour and day) period. A Gaussian smoother of σ=7km is applied (σ=25km for significant severe reports), with these parameters chosen to minimize the mean absolute deviation in 5-fold cross validation, which each convective week assigned to a different fold. For points within 25 miles of the CONUS edge, the number of reports per period is altered upward according to the portion of the surrounding 25 miles that lies within the CONUS, e.g. a point exactly on the straight portion of the border with Canada will have its report count doubled because only half of its surrounding 25 miles can produce reports. This alteration is performed because the ASOS climatology does not have a similar edge artifact. (Skipping this step results in reweighting factors that upweight reports on the edge of CONUS. This is arguably desirable. But edges, if considered at all, might better be handled in an explicit step in the ML pipeline.)
 
 The resulting estimated report climatologies are shown below.
 
@@ -139,97 +139,97 @@ Significant severe wind estimated report days per year:
 
 ![estimated_sig_report_days_per_year](plots/estimated_sig_report_days_per_year.png)
 
-### Normalization Factors
+### Reweighting Factors
 
-Normalization factors are computed to make the estimated reporting rate match the ASOS measured gustiness. The normalization factors are each a number *y* between 0.0 and 1.0 such that each estimated report, instead of counting as 1 severe wind gust, counts as *y* severe wind gusts. As before, the sum of reweighted reports is clamped to at most 1 per period, so the math to compute these normalization factors is not a straightforward division. Instead, the normalization factors are discovered by binary search. The normalization factors for each location in CONUS are shown below.
+Reweighting factors are computed to make the estimated reporting rate match the ASOS measured gustiness. The reweighting factors are each a number *y* between 0.0 and 1.0 such that each estimated report, instead of counting as 1 severe wind gust, counts as *y* severe wind gusts. As before, the sum of reweighted reports is clamped to at most 1 per period, so the math to compute these reweighting factors is not a straightforward division. Instead, the reweighting factors are discovered by binary search. The reweighting factors for each location in CONUS are shown below.
 
-Severe wind hour-based normalization factors:
+Severe wind hour-based reweighting factors:
 
-![hour_x1_normalization](plots/hour_x1_normalization.png)
+![hour_x1_reweighting](plots/hour_x1_reweighting.png)
 
-Severe wind four-hour-based normalization factors:
+Severe wind four-hour-based reweighting factors:
 
-![fourhour_x1_normalization](plots/fourhour_x1_normalization.png)
+![fourhour_x1_reweighting](plots/fourhour_x1_reweighting.png)
 
-Severe wind day-based normalization factors:
+Severe wind day-based reweighting factors:
 
-![day_x1_normalization](plots/day_x1_normalization.png)
+![day_x1_reweighting](plots/day_x1_reweighting.png)
 
-Significant severe wind hour-based normalization factors:
+Significant severe wind hour-based reweighting factors:
 
-![sig_hour_x1_normalization](plots/sig_hour_x1_normalization.png)
+![sig_hour_x1_reweighting](plots/sig_hour_x1_reweighting.png)
 
-Significant severe wind four-hour-based normalization factors:
+Significant severe wind four-hour-based reweighting factors:
 
-![sig_fourhour_x1_normalization](plots/sig_fourhour_x1_normalization.png)
+![sig_fourhour_x1_reweighting](plots/sig_fourhour_x1_reweighting.png)
 
-Significant severe wind day-based normalization factors:
+Significant severe wind day-based reweighting factors:
 
-![sig_day_x1_normalization](plots/sig_day_x1_normalization.png)
+![sig_day_x1_reweighting](plots/sig_day_x1_reweighting.png)
 
-When each estimated wind report is adjusted to count as the normalization factor for its location, the resulting climatologies are as shown below.
+When each estimated wind report is adjusted to count as the reweighting factor for its location, the resulting climatologies are as shown below.
 
-Normalized severe wind estimated report hours per year:
+Reweighted severe wind estimated report hours per year:
 
-![estimated_x1_normalized_report_hours_per_year](plots/estimated_x1_normalized_report_hours_per_year.png)
+![estimated_x1_reweighted_report_hours_per_year](plots/estimated_x1_reweighted_report_hours_per_year.png)
 
-Normalized severe wind estimated report four-hours per year:
+Reweighted severe wind estimated report four-hours per year:
 
-![estimated_x1_normalized_report_fourhours_per_year](plots/estimated_x1_normalized_report_fourhours_per_year.png)
+![estimated_x1_reweighted_report_fourhours_per_year](plots/estimated_x1_reweighted_report_fourhours_per_year.png)
 
-Normalized severe wind estimated report days per year:
+Reweighted severe wind estimated report days per year:
 
-![estimated_x1_normalized_report_days_per_year](plots/estimated_x1_normalized_report_days_per_year.png)
+![estimated_x1_reweighted_report_days_per_year](plots/estimated_x1_reweighted_report_days_per_year.png)
 
-Normalized significant severe wind estimated report hours per year:
+Reweighted significant severe wind estimated report hours per year:
 
-![estimated_x1_normalized_sig_report_hours_per_year](plots/estimated_x1_normalized_sig_report_hours_per_year.png)
+![estimated_x1_reweighted_sig_report_hours_per_year](plots/estimated_x1_reweighted_sig_report_hours_per_year.png)
 
-Normalized significant severe wind estimated report four-hours per year:
+Reweighted significant severe wind estimated report four-hours per year:
 
-![estimated_x1_normalized_sig_report_fourhours_per_year](plots/estimated_x1_normalized_sig_report_fourhours_per_year.png)
+![estimated_x1_reweighted_sig_report_fourhours_per_year](plots/estimated_x1_reweighted_sig_report_fourhours_per_year.png)
 
-Normalized significant severe wind estimated report days per year:
+Reweighted significant severe wind estimated report days per year:
 
-![estimated_x1_normalized_sig_report_days_per_year](plots/estimated_x1_normalized_sig_report_days_per_year.png)
+![estimated_x1_reweighted_sig_report_days_per_year](plots/estimated_x1_reweighted_sig_report_days_per_year.png)
 
 When the measured wind reports are added back in as is, the following climatologies result:
 
-Measured plus normalized estimated severe wind report hours per year:
+Measured plus reweighted estimated severe wind report hours per year:
 
-![estimated_x1_normalized_plus_measured_report_hours_per_year](plots/estimated_x1_normalized_plus_measured_report_hours_per_year.png)
+![estimated_x1_reweighted_plus_measured_report_hours_per_year](plots/estimated_x1_reweighted_plus_measured_report_hours_per_year.png)
 
-Measured plus normalized estimated severe wind report four-hours per year:
+Measured plus reweighted estimated severe wind report four-hours per year:
 
-![estimated_x1_normalized_plus_measured_report_fourhours_per_year](plots/estimated_x1_normalized_plus_measured_report_fourhours_per_year.png)
+![estimated_x1_reweighted_plus_measured_report_fourhours_per_year](plots/estimated_x1_reweighted_plus_measured_report_fourhours_per_year.png)
 
-Measured plus normalized estimated severe wind report days per year:
+Measured plus reweighted estimated severe wind report days per year:
 
-![estimated_x1_normalized_plus_measured_report_days_per_year](plots/estimated_x1_normalized_plus_measured_report_days_per_year.png)
+![estimated_x1_reweighted_plus_measured_report_days_per_year](plots/estimated_x1_reweighted_plus_measured_report_days_per_year.png)
 
-Measured plus normalized estimated significant severe wind report hours per year:
+Measured plus reweighted estimated significant severe wind report hours per year:
 
-![estimated_x1_normalized_plus_measured_sig_report_hours_per_year](plots/estimated_x1_normalized_plus_measured_sig_report_hours_per_year.png)
+![estimated_x1_reweighted_plus_measured_sig_report_hours_per_year](plots/estimated_x1_reweighted_plus_measured_sig_report_hours_per_year.png)
 
-Measured plus normalized estimated significant severe wind report four-hours per year:
+Measured plus reweighted estimated significant severe wind report four-hours per year:
 
-![estimated_x1_normalized_plus_measured_sig_report_fourhours_per_year](plots/estimated_x1_normalized_plus_measured_sig_report_fourhours_per_year.png)
+![estimated_x1_reweighted_plus_measured_sig_report_fourhours_per_year](plots/estimated_x1_reweighted_plus_measured_sig_report_fourhours_per_year.png)
 
-Measured plus normalized estimated significant severe wind report days per year:
+Measured plus reweighted estimated significant severe wind report days per year:
 
-![estimated_x1_normalized_plus_measured_sig_report_days_per_year](plots/estimated_x1_normalized_plus_measured_sig_report_days_per_year.png)
+![estimated_x1_reweighted_plus_measured_sig_report_days_per_year](plots/estimated_x1_reweighted_plus_measured_sig_report_days_per_year.png)
 
-## Using the Normalization Factors
+## Using the Reweighting Factors
 
-The normalization factors are available for use in the following files:
+The reweighting factors are available for use in the following files:
 
 ```
-out/day_x1_normalization_grid_130_cropped.csv
-out/fourhour_x1_normalization_grid_130_cropped.csv
-out/hour_x1_normalization_grid_130_cropped.csv
-out/sig_day_x1_normalization_grid_130_cropped.csv
-out/sig_fourhour_x1_normalization_grid_130_cropped.csv
-out/sig_hour_x1_normalization_grid_130_cropped.csv
+out/day_x1_reweighting_grid_130_cropped.csv
+out/fourhour_x1_reweighting_grid_130_cropped.csv
+out/hour_x1_reweighting_grid_130_cropped.csv
+out/sig_day_x1_reweighting_grid_130_cropped.csv
+out/sig_fourhour_x1_reweighting_grid_130_cropped.csv
+out/sig_hour_x1_reweighting_grid_130_cropped.csv
 ```
 
 These files are on the 13km [AWIPS grid 130](https://www.nco.ncep.noaa.gov/pmb/docs/on388/tableb.html#GRID130), with [some rows and columns on the edges cropped off](https://github.com/brianhempel/adjusted_severe_training_targets/blob/d3e23a6437ef51dccd79606d61b1691ec82eb418/Grids.jl#L539-L561) to better fit the CONUS. The file `a_file_with_grid_130_cropped.grib2` is an example grib2 file with the cropped grid, and these are the cropped grid specs:
@@ -281,12 +281,12 @@ Some of the tasks require a bit of manual intervention, so do read the Makefile 
 The final outputs of the entire pipeline are these files...
 
 ```
-out/day_x1_normalization_grid_130_cropped.csv
-out/fourhour_x1_normalization_grid_130_cropped.csv
-out/hour_x1_normalization_grid_130_cropped.csv
-out/sig_day_x1_normalization_grid_130_cropped.csv
-out/sig_fourhour_x1_normalization_grid_130_cropped.csv
-out/sig_hour_x1_normalization_grid_130_cropped.csv
+out/day_x1_reweighting_grid_130_cropped.csv
+out/fourhour_x1_reweighting_grid_130_cropped.csv
+out/hour_x1_reweighting_grid_130_cropped.csv
+out/sig_day_x1_reweighting_grid_130_cropped.csv
+out/sig_fourhour_x1_reweighting_grid_130_cropped.csv
+out/sig_hour_x1_reweighting_grid_130_cropped.csv
 ```
 
-...which are the normalization factors of how much a Storm Data estimated wind report at some location should be multiplied by to match the severe/sigsevere day/hourhour/hour ASOS gust climatology. The "x1" means the normalization factors are trying to make estimated reports match `g * 1`, where `g` is the ASOS gust rate at a point and `1` is a corretion factor. The ASOS climatology is gustiness at a point, not in a neighborhood, so there is an argument that `g` should be multiplied by some larger correction factor to convert the gust rate at a point to a 25mi radius neighborhood gust rate. But, I cannot reasonably figure out what that correction factor is. It might be ~10. And any factor higher than 1 causes the estimated report climatology to no longer match the ASOS climatology as well because more of CONUS gets the max normalization of 1, causing the adjusted report climatology to look more like the unadjusted report climatology. (If we could make a single report count more than 1, we wouldn't have this problem, but that is a bad idea, especially for estimated reports.) If you would like to compute and plot the resulting normalizations for higher correction factors, uncomment the appropriate lines in the Makefile.
+...which are the reweighting factors of how much a Storm Data estimated wind report at some location should be multiplied by to match the severe/sigsevere day/hourhour/hour ASOS gust climatology. The "x1" means the reweighting factors are trying to make estimated reports match `g * 1`, where `g` is the ASOS gust rate at a point and `1` is a corretion factor. The ASOS climatology is gustiness at a point, not in a neighborhood, so there is an argument that `g` should be multiplied by some larger correction factor to convert the gust rate at a point to a 25mi radius neighborhood gust rate. But, I cannot reasonably figure out what that correction factor is. It might be ~10. And any factor higher than 1 causes the estimated report climatology to no longer match the ASOS climatology as well because more of CONUS gets the max reweighting of 1, causing the adjusted report climatology to look more like the unadjusted report climatology. (If we could make a single report count more than 1, we wouldn't have this problem, but that is a bad idea, especially for estimated reports.) If you would like to compute and plot the resulting reweightings for higher correction factors, uncomment the appropriate lines in the Makefile.

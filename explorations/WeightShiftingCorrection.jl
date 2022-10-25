@@ -1,6 +1,6 @@
 # The ASOS point-based gustiness is on the whole much smaller than the estimated reports gustinees.
 #
-# Compute a correction so that, after normalization, the total amount of reported gusts within
+# Compute a correction so that, after reweighting, the total amount of reported gusts within
 # 25mi summed across the CONUS is roughly the same as before.
 #
 # This factor should be about 5.

@@ -20,6 +20,11 @@ report_to_convective_day_is(report) = seconds_to_convective_day_i(report.start_s
 
 
 function make_row(wban_id, name, state, latlon, legit_hours, legit_fourhours, legit_convective_days, ndays, gust_hours, gust_fourhours, gust_convective_days, sig_gust_hours, sig_gust_fourhours, sig_gust_convective_days)
+
+  @assert ndays      == length(legit_convective_days)
+  @assert ndays * 6  == length(legit_fourhours)
+  @assert ndays * 24 == length(legit_hours)
+
   nhours_with_gusts         = count_unique(gust_hours)
   nfourhours_with_gusts     = count_unique(gust_fourhours)
   ndays_with_gusts          = count_unique(gust_convective_days)
@@ -77,8 +82,19 @@ function make_row(wban_id, name, state, latlon, legit_hours, legit_fourhours, le
   mean_est_sig_reports_in_report_fourhours_with_sig_gusts       = nfourhours_with_est_sig_reports > 0 && isnan(mean_est_sig_reports_in_report_fourhours_with_sig_gusts)       ? 1.0 : mean_est_sig_reports_in_report_fourhours_with_sig_gusts
   mean_est_sig_reports_in_report_convective_days_with_sig_gusts = ndays_with_est_sig_reports      > 0 && isnan(mean_est_sig_reports_in_report_convective_days_with_sig_gusts) ? 1.0 : mean_est_sig_reports_in_report_convective_days_with_sig_gusts
 
+  prob_asos_gust_hour_given_0_est_reports          = mean([i in gust_hours           ? 1 : 0 for i in legit_hours           if get(est_report_hours_tally,           i, 0) == 0])
+  prob_asos_gust_hour_given_1_est_reports          = mean([i in gust_hours           ? 1 : 0 for i in legit_hours           if get(est_report_hours_tally,           i, 0) == 1])
+  prob_asos_gust_hour_given_2_est_reports          = mean([i in gust_hours           ? 1 : 0 for i in legit_hours           if get(est_report_hours_tally,           i, 0) == 2])
+  prob_asos_gust_hour_given_3_est_reports          = mean([i in gust_hours           ? 1 : 0 for i in legit_hours           if get(est_report_hours_tally,           i, 0) == 3])
+  prob_asos_gust_hour_given_at_least_4_est_reports = mean([i in gust_hours           ? 1 : 0 for i in legit_hours           if get(est_report_hours_tally,           i, 0) >= 4])
+  prob_asos_gust_day_given_0_est_reports           = mean([i in gust_convective_days ? 1 : 0 for i in legit_convective_days if get(est_report_convective_days_tally, i, 0) == 0])
+  prob_asos_gust_day_given_1_est_reports           = mean([i in gust_convective_days ? 1 : 0 for i in legit_convective_days if get(est_report_convective_days_tally, i, 0) == 1])
+  prob_asos_gust_day_given_2_est_reports           = mean([i in gust_convective_days ? 1 : 0 for i in legit_convective_days if get(est_report_convective_days_tally, i, 0) == 2])
+  prob_asos_gust_day_given_3_est_reports           = mean([i in gust_convective_days ? 1 : 0 for i in legit_convective_days if get(est_report_convective_days_tally, i, 0) == 3])
+  prob_asos_gust_day_given_at_least_4_est_reports  = mean([i in gust_convective_days ? 1 : 0 for i in legit_convective_days if get(est_report_convective_days_tally, i, 0) >= 4])
+
   nyears = ndays / 365.25
-  row = [
+  row = Any[
     wban_id,
     name,
     state,
@@ -115,11 +131,74 @@ function make_row(wban_id, name, state, latlon, legit_hours, legit_fourhours, le
     Float32(mean_est_sig_reports_in_report_hours_with_sig_gusts),
     Float32(mean_est_sig_reports_in_report_fourhours_with_sig_gusts),
     Float32(mean_est_sig_reports_in_report_convective_days_with_sig_gusts),
+    length(station_est_reports),
+    Float32(length(station_est_reports) / nyears),
+    prob_asos_gust_hour_given_0_est_reports,
+    prob_asos_gust_hour_given_1_est_reports,
+    prob_asos_gust_hour_given_2_est_reports,
+    prob_asos_gust_hour_given_3_est_reports,
+    prob_asos_gust_hour_given_at_least_4_est_reports,
+    prob_asos_gust_day_given_0_est_reports,
+    prob_asos_gust_day_given_1_est_reports,
+    prob_asos_gust_day_given_2_est_reports,
+    prob_asos_gust_day_given_3_est_reports,
+    prob_asos_gust_day_given_at_least_4_est_reports,
   ]
   println(join(row, ','))
 end
 
-println("wban_id,name,state,lat,lon,ndays,nhours_with_gusts,nfourhours_with_gusts,ndays_with_gusts,nhours_with_sig_gusts,nfourhours_with_sig_gusts,ndays_with_sig_gusts,gust_hours_per_year,gust_fourhours_per_year,gust_days_per_year,sig_gust_hours_per_year,sig_gust_fourhours_per_year,sig_gust_days_per_year,nhours_with_est_reports,nfourhours_with_est_reports,ndays_with_est_reports,nhours_with_est_sig_reports,nfourhours_with_est_sig_reports,ndays_with_est_sig_reports,mean_est_reports_in_hours_with_est_reports,mean_est_reports_in_fourhours_with_est_reports,mean_est_reports_in_convective_days_with_est_reports,mean_est_sig_reports_in_hours_with_est_sig_reports,mean_est_sig_reports_in_fourhours_with_est_sig_reports,mean_est_sig_reports_in_convective_days_with_est_sig_reports,mean_est_reports_in_report_hours_with_gusts,mean_est_reports_in_report_fourhours_with_gusts,mean_est_reports_in_report_convective_days_with_gusts,mean_est_sig_reports_in_report_hours_with_sig_gusts,mean_est_sig_reports_in_report_fourhours_with_sig_gusts,mean_est_sig_reports_in_report_convective_days_with_sig_gusts")
+println(join(
+  [
+    "wban_id",
+    "name",
+    "state",
+    "lat",
+    "lon",
+    "ndays",
+    "nhours_with_gusts",
+    "nfourhours_with_gusts",
+    "ndays_with_gusts",
+    "nhours_with_sig_gusts",
+    "nfourhours_with_sig_gusts",
+    "ndays_with_sig_gusts",
+    "gust_hours_per_year",
+    "gust_fourhours_per_year",
+    "gust_days_per_year",
+    "sig_gust_hours_per_year",
+    "sig_gust_fourhours_per_year",
+    "sig_gust_days_per_year",
+    "nhours_with_est_reports",
+    "nfourhours_with_est_reports",
+    "ndays_with_est_reports",
+    "nhours_with_est_sig_reports",
+    "nfourhours_with_est_sig_reports",
+    "ndays_with_est_sig_reports",
+    "mean_est_reports_in_hours_with_est_reports",
+    "mean_est_reports_in_fourhours_with_est_reports",
+    "mean_est_reports_in_convective_days_with_est_reports",
+    "mean_est_sig_reports_in_hours_with_est_sig_reports",
+    "mean_est_sig_reports_in_fourhours_with_est_sig_reports",
+    "mean_est_sig_reports_in_convective_days_with_est_sig_reports",
+    "mean_est_reports_in_report_hours_with_gusts",
+    "mean_est_reports_in_report_fourhours_with_gusts",
+    "mean_est_reports_in_report_convective_days_with_gusts",
+    "mean_est_sig_reports_in_report_hours_with_sig_gusts",
+    "mean_est_sig_reports_in_report_fourhours_with_sig_gusts",
+    "mean_est_sig_reports_in_report_convective_days_with_sig_gusts",
+    "nest_reports", # number of estimated reports
+    "est_reports_per_year",
+    "prob_asos_gust_hour_given_0_est_reports",
+    "prob_asos_gust_hour_given_1_est_reports",
+    "prob_asos_gust_hour_given_2_est_reports",
+    "prob_asos_gust_hour_given_3_est_reports",
+    "prob_asos_gust_hour_given_4+_est_reports",
+    "prob_asos_gust_day_given_0_est_reports",
+    "prob_asos_gust_day_given_1_est_reports",
+    "prob_asos_gust_day_given_2_est_reports",
+    "prob_asos_gust_day_given_3_est_reports",
+    "prob_asos_gust_day_given_4+_est_reports",
+  ], ","
+))
 
 for station in sort(ASOSStations.stations, by = (s -> -(length(s.gusts) + 0.001) / s.ndays))
   make_row(

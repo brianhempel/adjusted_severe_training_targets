@@ -3,8 +3,8 @@ push!(LOAD_PATH, @__DIR__)
 import Grids
 
 const estimated_reports_gustiness_path                                    = joinpath(@__DIR__, "out", "estimated_reports_gustiness.csv")
-estimated_reports_normalized_gustiness_path(factor)                       = joinpath(@__DIR__, "out", "estimated_reports_x$(factor)_normalized_gustiness.csv")
-estimated_reports_normalized_plus_measured_reports_gustiness_path(factor) = joinpath(@__DIR__, "out", "estimated_reports_x$(factor)_normalized_plus_measured_reports_gustiness.csv")
+estimated_reports_reweighted_gustiness_path(factor)                       = joinpath(@__DIR__, "out", "estimated_reports_x$(factor)_reweighted_gustiness.csv")
+estimated_reports_reweighted_plus_measured_reports_gustiness_path(factor) = joinpath(@__DIR__, "out", "estimated_reports_x$(factor)_reweighted_plus_measured_reports_gustiness.csv")
 const measured_reports_gustiness_path                                     = joinpath(@__DIR__, "out", "measured_reports_gustiness.csv")
 const all_reports_gustiness_path                                          = joinpath(@__DIR__, "out", "all_reports_gustiness.csv")
 const estimated_reports_gustiness_path_2003_2011                          = joinpath(@__DIR__, "out", "estimated_reports_gustiness_2003-2011.csv")
@@ -119,13 +119,13 @@ do_it("estimated", estimated_reports_gustiness_path, 7, 25)
 do_it("measured",  measured_reports_gustiness_path,  5, 0)
 do_it("all",       all_reports_gustiness_path,       7, 25) # There are more measured reports, so use its blur params.
 for correction_factor in 1:10
-  if isfile(estimated_reports_normalized_gustiness_path(correction_factor))
-    do_it("estimated_x$(correction_factor)_normalized", estimated_reports_normalized_gustiness_path(correction_factor), 7, 25)
+  if isfile(estimated_reports_reweighted_gustiness_path(correction_factor))
+    do_it("estimated_x$(correction_factor)_reweighted", estimated_reports_reweighted_gustiness_path(correction_factor), 7, 25)
   end
 end
 for correction_factor in 1:10
-  if isfile(estimated_reports_normalized_plus_measured_reports_gustiness_path(correction_factor))
-    do_it("estimated_x$(correction_factor)_normalized_plus_measured", estimated_reports_normalized_plus_measured_reports_gustiness_path(correction_factor), 7, 25) # There are more measured reports, so use its blur params.
+  if isfile(estimated_reports_reweighted_plus_measured_reports_gustiness_path(correction_factor))
+    do_it("estimated_x$(correction_factor)_reweighted_plus_measured", estimated_reports_reweighted_plus_measured_reports_gustiness_path(correction_factor), 7, 25) # There are more measured reports, so use its blur params.
   end
 end
 

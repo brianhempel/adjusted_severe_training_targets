@@ -28,7 +28,7 @@ const all_reports       = filter(r -> r.start_seconds_from_epoch_utc in year_ran
 const measured_reports  = filter(r -> r.measured,  all_reports)
 const estimated_reports = filter(r -> !r.measured, all_reports)
 
-normalization_paths(suffix) = (
+reweighting_paths(suffix) = (
   joinpath(@__DIR__, "out", "hour_$suffix.csv"),
   joinpath(@__DIR__, "out", "fourhour_$suffix.csv"),
   joinpath(@__DIR__, "out", "day_$suffix.csv"),
@@ -59,13 +59,13 @@ const nfourhours = nhours ÷ 4
 
 mean(xs) = sum(xs) / length(xs)
 
-function count_reports(reports, extra_unnormalized_reports, seconds_to_period_i, normalization)
+function count_reports(reports, extra_unreweighted_reports, seconds_to_period_i, reweighting)
   counts = Dict{Int64,Float64}()
 
   for report in reports
-    # use mean normalization of of start and end latlons
-    factor1 = Grids.lookup_nearest(grid, normalization, report.start_latlon)
-    factor2 = Grids.lookup_nearest(grid, normalization, report.end_latlon)
+    # use mean reweighting of of start and end latlons
+    factor1 = Grids.lookup_nearest(grid, reweighting, report.start_latlon)
+    factor2 = Grids.lookup_nearest(grid, reweighting, report.end_latlon)
     factor = mean([factor1, factor2])
 
     for period_i in seconds_to_period_i(report.start_seconds_from_epoch_utc):seconds_to_period_i(report.end_seconds_from_epoch_utc)
@@ -74,7 +74,7 @@ function count_reports(reports, extra_unnormalized_reports, seconds_to_period_i,
     end
   end
 
-  for report in extra_unnormalized_reports
+  for report in extra_unreweighted_reports
     for period_i in seconds_to_period_i(report.start_seconds_from_epoch_utc):seconds_to_period_i(report.end_seconds_from_epoch_utc)
       counts[period_i] = 1.0
     end
@@ -83,36 +83,36 @@ function count_reports(reports, extra_unnormalized_reports, seconds_to_period_i,
   sum(values(counts))
 end
 
-function output(reports, normalization_paths = (nothing, nothing, nothing, nothing, nothing, nothing); edge_correction = false, extra_unnormalized_reports = WindReports.Report[])
+function output(reports, reweighting_paths = (nothing, nothing, nothing, nothing, nothing, nothing); edge_correction = false, extra_unreweighted_reports = WindReports.Report[])
   reports_gridded                    = WindReports.distribute_to_gridpoints(grid, reports)
-  extra_unnormalized_reports_gridded = WindReports.distribute_to_gridpoints(grid, extra_unnormalized_reports)
+  extra_unreweighted_reports_gridded = WindReports.distribute_to_gridpoints(grid, extra_unreweighted_reports)
 
-  no_normalization = ones(Float64, length(latlons))
+  no_reweighting = ones(Float64, length(latlons))
 
-  hour_normalization,
-  fourhour_normalization,
-  day_normalization,
-  sig_hour_normalization,
-  sig_fourhour_normalization,
-  sig_day_normalization = map(normalization_paths) do normalization_path
-    isnothing(normalization_path) ? no_normalization : read_3rd_col(normalization_path)
+  hour_reweighting,
+  fourhour_reweighting,
+  day_reweighting,
+  sig_hour_reweighting,
+  sig_fourhour_reweighting,
+  sig_day_reweighting = map(reweighting_paths) do reweighting_path
+    isnothing(reweighting_path) ? no_reweighting : read_3rd_col(reweighting_path)
   end
 
   println("lat,lon,nhours_with_reports,nfourhours_with_reports,ndays_with_reports,nhours_with_sig_reports,nfourhours_with_sig_reports,ndays_with_sig_reports,report_hours_per_year,report_fourhours_per_year,report_days_per_year,sig_report_hours_per_year,sig_report_fourhours_per_year,sig_report_days_per_year")
 
-  for (latlon, pt_reports, edge_correction_factor, pt_extra_unnormalized_reports) in zip(latlons, reports_gridded, edge_correction_factors, extra_unnormalized_reports_gridded)
+  for (latlon, pt_reports, edge_correction_factor, pt_extra_unreweighted_reports) in zip(latlons, reports_gridded, edge_correction_factors, extra_unreweighted_reports_gridded)
     edge_correction_factor = edge_correction ? edge_correction_factor : 1.0
 
-    nhours_with_reports     = edge_correction_factor * count_reports(pt_reports, pt_extra_unnormalized_reports, seconds_to_hour_i,           hour_normalization)
-    nfourhours_with_reports = edge_correction_factor * count_reports(pt_reports, pt_extra_unnormalized_reports, seconds_to_fourhour_i,       fourhour_normalization)
-    ndays_with_reports      = edge_correction_factor * count_reports(pt_reports, pt_extra_unnormalized_reports, seconds_to_convective_day_i, day_normalization)
+    nhours_with_reports     = edge_correction_factor * count_reports(pt_reports, pt_extra_unreweighted_reports, seconds_to_hour_i,           hour_reweighting)
+    nfourhours_with_reports = edge_correction_factor * count_reports(pt_reports, pt_extra_unreweighted_reports, seconds_to_fourhour_i,       fourhour_reweighting)
+    ndays_with_reports      = edge_correction_factor * count_reports(pt_reports, pt_extra_unreweighted_reports, seconds_to_convective_day_i, day_reweighting)
 
     pt_sig_reports                    = filter(WindReports.is_sig_wind, pt_reports)
-    pt_sig_extra_unnormalized_reports = filter(WindReports.is_sig_wind, pt_extra_unnormalized_reports)
+    pt_sig_extra_unreweighted_reports = filter(WindReports.is_sig_wind, pt_extra_unreweighted_reports)
 
-    nhours_with_sig_reports     = edge_correction_factor * count_reports(pt_sig_reports, pt_sig_extra_unnormalized_reports, seconds_to_hour_i,           sig_hour_normalization)
-    nfourhours_with_sig_reports = edge_correction_factor * count_reports(pt_sig_reports, pt_sig_extra_unnormalized_reports, seconds_to_fourhour_i,       sig_fourhour_normalization)
-    ndays_with_sig_reports      = edge_correction_factor * count_reports(pt_sig_reports, pt_sig_extra_unnormalized_reports, seconds_to_convective_day_i, sig_day_normalization)
+    nhours_with_sig_reports     = edge_correction_factor * count_reports(pt_sig_reports, pt_sig_extra_unreweighted_reports, seconds_to_hour_i,           sig_hour_reweighting)
+    nfourhours_with_sig_reports = edge_correction_factor * count_reports(pt_sig_reports, pt_sig_extra_unreweighted_reports, seconds_to_fourhour_i,       sig_fourhour_reweighting)
+    ndays_with_sig_reports      = edge_correction_factor * count_reports(pt_sig_reports, pt_sig_extra_unreweighted_reports, seconds_to_convective_day_i, sig_day_reweighting)
 
     row = [
       latlon[1],
@@ -136,17 +136,17 @@ end
 
 if ARGS[1] == "estimated"
   output(estimated_reports; edge_correction = true)
-elseif ARGS[1] == "estimated_normalized"
+elseif ARGS[1] == "estimated_reweighted"
   suffix = ARGS[2]
-  output(estimated_reports, normalization_paths(suffix); edge_correction = true)
+  output(estimated_reports, reweighting_paths(suffix); edge_correction = true)
 elseif ARGS[1] == "measured"
   output(measured_reports; edge_correction = true)
-elseif ARGS[1] == "measured+estimated_normalized"
+elseif ARGS[1] == "measured+estimated_reweighted"
   suffix = ARGS[2]
-  output(estimated_reports, normalization_paths(suffix); edge_correction = true, extra_unnormalized_reports = measured_reports)
+  output(estimated_reports, reweighting_paths(suffix); edge_correction = true, extra_unreweighted_reports = measured_reports)
 elseif ARGS[1] == "all"
   output(all_reports; edge_correction = true)
 else
-  println(stderr, "must provide a \"estimated\", \"estimated_normalized\", \"estimated_uncorrected_normalized\", \"measured\", \"measured+estimated_normalized\", or \"all\" as an argument")
+  println(stderr, "must provide a \"estimated\", \"estimated_reweighted\", \"estimated_uncorrected_reweighted\", \"measured\", \"measured+estimated_reweighted\", or \"all\" as an argument")
   exit(1)
 end
