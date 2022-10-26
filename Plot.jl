@@ -18,6 +18,13 @@ const estimated_sig_report_hours_per_year_grid_130_cropped_blurred_path     = jo
 const estimated_sig_report_fourhours_per_year_grid_130_cropped_blurred_path = joinpath(@__DIR__, "out", "estimated_sig_report_fourhours_per_year_grid_130_cropped_blurred.csv")
 const estimated_sig_report_days_per_year_grid_130_cropped_blurred_path      = joinpath(@__DIR__, "out", "estimated_sig_report_days_per_year_grid_130_cropped_blurred.csv")
 
+const estimated_edwards_adjusted_report_hours_per_year_grid_130_cropped_blurred_path         = joinpath(@__DIR__, "out", "estimated_edwards_adjusted_report_hours_per_year_grid_130_cropped_blurred.csv")
+const estimated_edwards_adjusted_report_fourhours_per_year_grid_130_cropped_blurred_path     = joinpath(@__DIR__, "out", "estimated_edwards_adjusted_report_fourhours_per_year_grid_130_cropped_blurred.csv")
+const estimated_edwards_adjusted_report_days_per_year_grid_130_cropped_blurred_path          = joinpath(@__DIR__, "out", "estimated_edwards_adjusted_report_days_per_year_grid_130_cropped_blurred.csv")
+const estimated_edwards_adjusted_sig_report_hours_per_year_grid_130_cropped_blurred_path     = joinpath(@__DIR__, "out", "estimated_edwards_adjusted_sig_report_hours_per_year_grid_130_cropped_blurred.csv")
+const estimated_edwards_adjusted_sig_report_fourhours_per_year_grid_130_cropped_blurred_path = joinpath(@__DIR__, "out", "estimated_edwards_adjusted_sig_report_fourhours_per_year_grid_130_cropped_blurred.csv")
+const estimated_edwards_adjusted_sig_report_days_per_year_grid_130_cropped_blurred_path      = joinpath(@__DIR__, "out", "estimated_edwards_adjusted_sig_report_days_per_year_grid_130_cropped_blurred.csv")
+
 hour_reweighting_grid_130_cropped_path(factor)          = joinpath(@__DIR__, "out", "hour_x$(factor)_reweighting_grid_130_cropped.csv")
 fourhour_reweighting_grid_130_cropped_path(factor)      = joinpath(@__DIR__, "out", "fourhour_x$(factor)_reweighting_grid_130_cropped.csv")
 day_reweighting_grid_130_cropped_path(factor)           = joinpath(@__DIR__, "out", "day_x$(factor)_reweighting_grid_130_cropped.csv")
@@ -225,6 +232,15 @@ function plot_reports()
     @async plot_one("Estimated Sig. Report Hours/Year",      nothing, estimated_sig_report_hours_per_year_grid_130_cropped_blurred_path;     zlow = 0, zhigh = 5,  steps = 5,  colors = colors_path_5)
     @async plot_one("Estimated Sig. Report Four-Hours/Year", nothing, estimated_sig_report_fourhours_per_year_grid_130_cropped_blurred_path; zlow = 0, zhigh = 5,  steps = 5,  colors = colors_path_5)
     @async plot_one("Estimated Sig. Report Days/Year",       nothing, estimated_sig_report_days_per_year_grid_130_cropped_blurred_path;      zlow = 0, zhigh = 5,  steps = 5,  colors = colors_path_5)
+  end
+
+  @sync begin
+    @async plot_one("Edwards et al. 2018 Adjusted Estimated Report Hours/Year",           nothing, estimated_edwards_adjusted_report_hours_per_year_grid_130_cropped_blurred_path;         zlow = 0, zhigh = 5, steps = 5, colors = colors_path_5)
+    @async plot_one("Edwards et al. 2018 Adjusted Estimated Report Four-Hours/Year",      nothing, estimated_edwards_adjusted_report_fourhours_per_year_grid_130_cropped_blurred_path;     zlow = 0, zhigh = 5, steps = 5, colors = colors_path_5)
+    @async plot_one("Edwards et al. 2018 Adjusted Estimated Report Days/Year",            nothing, estimated_edwards_adjusted_report_days_per_year_grid_130_cropped_blurred_path;          zlow = 0, zhigh = 5, steps = 5, colors = colors_path_5)
+    @async plot_one("Edwards et al. 2018 Adjusted Estimated Sig. Report Hours/Year",      nothing, estimated_edwards_adjusted_sig_report_hours_per_year_grid_130_cropped_blurred_path;     zlow = 0, zhigh = 1, steps = 5, colors = colors_path_1)
+    @async plot_one("Edwards et al. 2018 Adjusted Estimated Sig. Report Four-Hours/Year", nothing, estimated_edwards_adjusted_sig_report_fourhours_per_year_grid_130_cropped_blurred_path; zlow = 0, zhigh = 1, steps = 5, colors = colors_path_1)
+    @async plot_one("Edwards et al. 2018 Adjusted Estimated Sig. Report Days/Year",       nothing, estimated_edwards_adjusted_sig_report_days_per_year_grid_130_cropped_blurred_path;      zlow = 0, zhigh = 1, steps = 5, colors = colors_path_1)
   end
 
   @sync begin

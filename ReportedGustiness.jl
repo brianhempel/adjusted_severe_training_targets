@@ -24,9 +24,32 @@ begin_year, end_year = parse.(Int64, split(get(ENV, "YEAR_RANGE", "2003-2021"), 
 
 const year_range_seconds = Int64(Dates.datetime2unix(Dates.DateTime(begin_year))) + 12*HOUR : Int64(Dates.datetime2unix(Dates.DateTime(end_year + 1))) + 12*HOUR - 1
 
-const all_reports       = filter(r -> r.start_seconds_from_epoch_utc in year_range_seconds || r.end_seconds_from_epoch_utc in year_range_seconds,  WindReports.conus_severe_wind_reports)
+const all_reports       = filter(r -> r.start_seconds_from_epoch_utc in year_range_seconds || r.end_seconds_from_epoch_utc in year_range_seconds, WindReports.conus_severe_wind_reports)
 const measured_reports  = filter(r -> r.measured,  all_reports)
 const estimated_reports = filter(r -> !r.measured, all_reports)
+
+# Reliability and Climatological Impacts of Convective Wind Estimations
+# Roger Edwards, John T. Allen, Gregory W. Carbin
+# JAMC 2018
+# proposes multiplying estimated speeds by 0.8 because
+# humans in wind tunnels overestimate speeds by 25% according to:
+# Wind Speed Perception and Risk
+# Duzgun Agdas, Gregory D. Webster, Forrest J. Masters
+# PLoS ONE 2012
+const estimated_reports_edwards_adjusted =
+  filter(WindReports.is_severe_wind, map(estimated_reports) do r
+    WindReports.Report(
+      r.start_time,
+      r.start_seconds_from_epoch_utc,
+      r.end_time,
+      r.end_seconds_from_epoch_utc,
+      r.start_latlon,
+      r.end_latlon,
+      r.knots * 0.8,
+      r.sustained,
+      r.measured,
+    )
+  end)
 
 reweighting_paths(suffix) = (
   joinpath(@__DIR__, "out", "hour_$suffix.csv"),
@@ -136,6 +159,8 @@ end
 
 if ARGS[1] == "estimated"
   output(estimated_reports; edge_correction = true)
+elseif ARGS[1] == "estimated_edwards_adjusted"
+  output(estimated_reports_edwards_adjusted; edge_correction = true)
 elseif ARGS[1] == "estimated_reweighted"
   suffix = ARGS[2]
   output(estimated_reports, reweighting_paths(suffix); edge_correction = true)
@@ -147,6 +172,6 @@ elseif ARGS[1] == "measured+estimated_reweighted"
 elseif ARGS[1] == "all"
   output(all_reports; edge_correction = true)
 else
-  println(stderr, "must provide a \"estimated\", \"estimated_reweighted\", \"estimated_uncorrected_reweighted\", \"measured\", \"measured+estimated_reweighted\", or \"all\" as an argument")
+  println(stderr, "must provide a \"estimated\", \"estimated_edwards_adjusted\", \"estimated_reweighted\", \"measured\", \"measured+estimated_reweighted\", or \"all\" as an argument")
   exit(1)
 end

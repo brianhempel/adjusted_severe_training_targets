@@ -43,6 +43,7 @@ compute_CONUS_edge_correction_factors:
 
 compute_reports_gustiness:
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated > out/estimated_reports_gustiness.csv
+	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl estimated_edwards_adjusted > out/estimated_edwards_adjusted_reports_gustiness.csv
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl measured > out/measured_reports_gustiness.csv
 	JULIA_NUM_THREADS=${CORE_COUNT} julia ReportedGustiness.jl all > out/all_reports_gustiness.csv
 
