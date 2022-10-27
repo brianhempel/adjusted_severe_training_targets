@@ -51,6 +51,9 @@ const estimated_reports_edwards_adjusted =
     )
   end)
 
+# length(estimated_reports_edwards_adjusted) / length(estimated_reports)
+# 0.06733393264198799
+
 reweighting_paths(suffix) = (
   joinpath(@__DIR__, "out", "hour_$suffix.csv"),
   joinpath(@__DIR__, "out", "fourhour_$suffix.csv"),
