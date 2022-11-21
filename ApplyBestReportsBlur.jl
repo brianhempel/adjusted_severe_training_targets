@@ -15,58 +15,10 @@ const estimated_reports_gustiness_path_2013_2021                          = join
 const measured_reports_gustiness_path_2013_2021                           = joinpath(@__DIR__, "out", "measured_reports_gustiness_2013-2021.csv")
 const all_reports_gustiness_path_2013_2021                                = joinpath(@__DIR__, "out", "all_reports_gustiness_2013-2021.csv")
 
-const get_grid_i = Grids.get_grid_i
-
-# awww yeah n^2 blurring
-function blur(grid, conus_bitmask, σ_km, vals)
-  mid_xi = grid.width ÷ 2
-  mid_yi = grid.height ÷ 2
-  # a box roughly 6*σ_km on each side
-  radius_nx = findfirst(mid_xi:grid.width) do east_xi
-    Grids.instantish_distance(grid.latlons[get_grid_i(grid, (mid_yi, mid_xi))], grid.latlons[get_grid_i(grid, (mid_yi, east_xi))]) / 1000.0 > σ_km*3
-  end
-  radius_ny = findfirst(mid_yi:grid.height) do north_yi
-    Grids.instantish_distance(grid.latlons[get_grid_i(grid, (mid_yi, mid_xi))], grid.latlons[get_grid_i(grid, (north_yi, mid_xi))]) / 1000.0 > σ_km*3
-  end
-
-  # println(stderr, "σ_km = $(σ_km), radius_nx = $radius_nx, radius_ny = $radius_ny")
-
-  out = zeros(Float64, size(vals))
-
-  if σ_km == 0
-    out[conus_bitmask] = vals[conus_bitmask]
-    return out
-  end
-
-  for y1 in 1:grid.height
-    Threads.@threads for x1 in 1:grid.width
-      weight = eps(1.0)
-      amount = 0.0
-      i1 = get_grid_i(grid, (y1, x1))
-      # conus_bitmask[i1] || continue
-      val_ll = grid.latlons[i1]
-      for y2 in clamp(y1 - radius_ny, 1, grid.height):clamp(y1 + radius_ny, 1, grid.height)
-        for x2 in clamp(x1 - radius_nx, 1, grid.width):clamp(x1 + radius_nx, 1, grid.width)
-          i2 = get_grid_i(grid, (y2, x2))
-          conus_bitmask[i2] || continue
-          ll = grid.latlons[i2]
-          meters = Grids.instantish_distance(val_ll, ll)
-          w = exp(-(meters/1000)^2 / (2 * σ_km^2))
-          amount += w * vals[i2]
-          weight += w
-        end
-      end
-      out[i1] = amount / weight
-    end
-  end
-
-  out
-end
-
 function writeout_blurred(out_base_path, grid, conus_bitmask, σ_km, vals)
   println(stderr, out_base_path)
 
-  blurred = blur(grid, conus_bitmask, σ_km, vals)
+  blurred = Grids.gaussian_blur(grid, conus_bitmask, σ_km, vals)
 
   @assert length(blurred) == length(grid.latlons)
 

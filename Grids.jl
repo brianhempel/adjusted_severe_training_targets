@@ -504,6 +504,53 @@ function compute_point_areas(height, width, latlons)
   point_areas_sq_miles
 end
 
+function gaussian_blur(grid, conus_bitmask, σ_km, vals; only_in_conus = false)
+  mid_xi = grid.width ÷ 2
+  mid_yi = grid.height ÷ 2
+
+  # a box roughly 6*σ_km on each side
+  radius_nx = findfirst(mid_xi:grid.width) do east_xi
+    instantish_distance(grid.latlons[get_grid_i(grid, (mid_yi, mid_xi))], grid.latlons[get_grid_i(grid, (mid_yi, east_xi))]) / 1000.0 > σ_km*3
+  end
+  radius_ny = findfirst(mid_yi:grid.height) do north_yi
+    instantish_distance(grid.latlons[get_grid_i(grid, (mid_yi, mid_xi))], grid.latlons[get_grid_i(grid, (north_yi, mid_xi))]) / 1000.0 > σ_km*3
+  end
+
+  # println(stderr, "σ_km = $(σ_km), radius_nx = $radius_nx, radius_ny = $radius_ny")
+
+  out = zeros(Float64, size(vals))
+
+  if σ_km == 0
+    out[conus_bitmask] = vals[conus_bitmask]
+    return out
+  end
+
+  for y1 in 1:grid.height
+    Threads.@threads for x1 in 1:grid.width
+      weight = eps(1.0)
+      amount = 0.0
+      i1 = get_grid_i(grid, (y1, x1))
+      (!only_in_conus || conus_bitmask[i1]) || continue
+      val_ll = grid.latlons[i1]
+      for y2 in clamp(y1 - radius_ny, 1, grid.height):clamp(y1 + radius_ny, 1, grid.height)
+        for x2 in clamp(x1 - radius_nx, 1, grid.width):clamp(x1 + radius_nx, 1, grid.width)
+          i2 = get_grid_i(grid, (y2, x2))
+          conus_bitmask[i2] || continue
+          ll = grid.latlons[i2]
+          meters = instantish_distance(val_ll, ll)
+          w = exp(-(meters/1000)^2 / (2 * σ_km^2)) * grid.point_areas_sq_miles[i2]
+          amount += w * vals[i2]
+          weight += w
+        end
+      end
+      out[i1] = amount / weight
+    end
+  end
+
+  out
+end
+
+
 const grid_236 = begin
   cells = DelimitedFiles.readdlm(joinpath(@__DIR__, "grid_236.csv"), ',', Float64; header = true)[1]
   latlons = mapslices(cells; dims=[2]) do row
