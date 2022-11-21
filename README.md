@@ -290,3 +290,22 @@ out/sig_hour_x1_reweighting_grid_130_cropped.csv
 ```
 
 ...which are the reweighting factors of how much a Storm Data estimated wind report at some location should be multiplied by to match the severe/sigsevere day/hourhour/hour ASOS gust climatology. The "x1" means the reweighting factors are trying to make estimated reports match `g * 1`, where `g` is the ASOS gust rate at a point and `1` is a corretion factor. The ASOS climatology is gustiness at a point, not in a neighborhood, so there is an argument that `g` should be multiplied by some larger correction factor to convert the gust rate at a point to a 25mi radius neighborhood gust rate. But, I cannot reasonably figure out what that correction factor is. It might be ~10. And any factor higher than 1 causes the estimated report climatology to no longer match the ASOS climatology as well because more of CONUS gets the max reweighting of 1, causing the adjusted report climatology to look more like the unadjusted report climatology. (If we could make a single report count more than 1, we wouldn't have this problem, but that is a bad idea, especially for estimated reports.) If you would like to compute and plot the resulting reweightings for higher correction factors, uncomment the appropriate lines in the Makefile.
+
+## Other Bits
+
+The repo has a few other folders for generating plots to be used in the paper.
+
+- `casualties/` explores the population-adjusted risk of injury from convective wind, according to the injury and death annotations on wind reports for the 2003-2021 period.
+- `spc_nadocast_climatologies/` plots the climatology of SPC 13Z Day 1 wind outlooks, and the climatology of 12Z Nadocast ML predictions trained on the unadjusted and adjusted reports. The time period is 183 Sundays since July 2018 (the test set for Nadocast).
+- `warnings/` plots the climatology of severe thunderstorm warnings over 2008-2021. 2008 is the first full year in which the NWS officially used storm-based warnings rather than county-based warnings.
+
+It is not in the repo, but I also experimented with predicting unadjusted estimated wind reports using [population density](https://sedac.ciesin.columbia.edu/data/collection/gpw-v4/sets/browse) and [tree biomass](https://data.fs.usda.gov/geodata/rastergateway/biomass/). Tree biomass is less strong a predictor than you would expect. Interestingly, population density plus longitude is a better predictor than population density plus tree biomass, because the report longitude is as good a predictor as the population density:
+
+|                    | Spearman ρ | Spearman ρ² |
+| ------------------ | ---------- | ----------- |
+| Population Density | 0.72       | 0.52        |
+| Forest Biomass     | 0.26       | 0.068       |
+| Longitude          | 0.74       | 0.55        |
+
+
+(Note the Spearman correlations above are not weighted by gridpoint area, although the calculation is on a Lambert Conic Conformal grid, [NCEP grid 130](https://www.nco.ncep.noaa.gov/pmb/docs/on388/tableb.html#GRID130), so the gridpoint area differences are not extreme over the CONUS.)
