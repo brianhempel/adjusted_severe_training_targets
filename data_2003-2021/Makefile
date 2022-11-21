@@ -19,6 +19,15 @@ get_storm_data_reports:
 	ruby deduplicate_sort_merge_csvs.rb storm_data_reports/wind_reports_2003-2021_downloaded.csv > storm_data_reports/wind_reports_2003-2021.csv # The merge deduplicates and sorts
 	rm storm_data_reports/wind_reports_2003-2021_downloaded.csv
 
+get_storm_data_narratives:
+	START_YEAR=2003 STOP_YEAR=2021 ruby storm_data_reports/get_wind_narratives.rb > storm_data_reports/wind_report_narratives_2003-2021_downloaded.csv
+	ruby deduplicate_sort_merge_csvs.rb storm_data_reports/wind_report_narratives_2003-2021_downloaded.csv > storm_data_reports/wind_report_narratives_2003-2021.csv # The merge deduplicates and sorts
+	rm storm_data_reports/wind_report_narratives_2003-2021_downloaded.csv
+	egrep -c -i ,estimated,.\*tree storm_data_reports/wind_report_narratives_2003-2021.csv
+	# 191059
+	egrep -c -i ,estimated, storm_data_reports/wind_report_narratives_2003-2021.csv
+	# 256577
+
 grid_mucape_at_least_one:
 	julia mucape_at_least_one_gridded/grid_mucape_at_least_one.jl
 
