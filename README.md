@@ -145,27 +145,27 @@ Reweighting factors are computed to make the estimated reporting rate match the 
 
 Severe wind hour-based reweighting factors:
 
-![hour_x1_reweighting](plots/hour_x1_reweighting.png)
+![hour_x1_reweighting_factors](plots/hour_x1_reweighting_factors.png)
 
 Severe wind four-hour-based reweighting factors:
 
-![fourhour_x1_reweighting](plots/fourhour_x1_reweighting.png)
+![fourhour_x1_reweighting_factors](plots/fourhour_x1_reweighting_factors.png)
 
 Severe wind day-based reweighting factors:
 
-![day_x1_reweighting](plots/day_x1_reweighting.png)
+![day_x1_reweighting_factors](plots/day_x1_reweighting_factors.png)
 
 Significant severe wind hour-based reweighting factors:
 
-![sig_hour_x1_reweighting](plots/sig_hour_x1_reweighting.png)
+![sig_hour_x1_reweighting_factors](plots/sig_hour_x1_reweighting_factors.png)
 
 Significant severe wind four-hour-based reweighting factors:
 
-![sig_fourhour_x1_reweighting](plots/sig_fourhour_x1_reweighting.png)
+![sig_fourhour_x1_reweighting_factors](plots/sig_fourhour_x1_reweighting_factors.png)
 
 Significant severe wind day-based reweighting factors:
 
-![sig_day_x1_reweighting](plots/sig_day_x1_reweighting.png)
+![sig_day_x1_reweighting_factors](plots/sig_day_x1_reweighting_factors.png)
 
 When each estimated wind report is adjusted to count as the reweighting factor for its location, the resulting climatologies are as shown below.
 
