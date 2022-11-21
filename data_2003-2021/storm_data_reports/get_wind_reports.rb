@@ -54,7 +54,7 @@ LAT_LON_HEADERS = %w[
   end_lon
 ]
 
-wind_reports_file.print (BEGIN_END_TIMES_HEADERS + %w[kind speed speed_type source] + LAT_LON_HEADERS).to_csv
+wind_reports_file.print (BEGIN_END_TIMES_HEADERS + %w[kind speed speed_type source injuries_direct injuries_indirect deaths_direct deaths_indirect] + LAT_LON_HEADERS).to_csv
 
 # Event types:
 # Astronomical Low Tide
@@ -205,9 +205,7 @@ last_storm_events_database_report_time = Time.new(START_YEAR)
 
   wind_rows    = rows.select { |row| row["EVENT_TYPE"].strip == "Thunderstorm Wind" }
 
-  STDERR.puts "#{tornado_rows.count} tornado path pieces in #{year}"
   STDERR.puts "#{wind_rows.count} thunderstorm wind events in #{year}"
-  STDERR.puts "#{hail_rows.count} hail events in #{year}"
 
   # EG = Estimated Gust, MG = Measured Gust, ES = Estimated Sustained, MS = Measured Sustained
   wind_type = {
@@ -236,76 +234,17 @@ last_storm_events_database_report_time = Time.new(START_YEAR)
       row["EVENT_TYPE"], # kind
       (row["MAGNITUDE"].to_s)[/[\d\.]+/] || "-1", # speed
       wind_type[row["MAGNITUDE_TYPE"]] || row["MAGNITUDE_TYPE"], # speed_type
-      wind_source[row["MAGNITUDE_TYPE"]]
+      wind_source[row["MAGNITUDE_TYPE"]],
+      row["INJURIES_DIRECT"],
+      row["INJURIES_INDIRECT"],
+      row["DEATHS_DIRECT"],
+      row["DEATHS_INDIRECT"]
     ] +
     row_to_lat_lon_cells(row)
   end
 
   wind_rows.map(&:to_csv).sort.each do |row_csv_str|
     wind_reports_file.print row_csv_str
-  end
-end
-
-
-# Part 2: SPC Storm Reports from the end of the storm events database until 1 week ago
-
-if ARGV[3] == "--add_spc_storm_reports"
-
-  start_date = last_storm_events_database_report_time.to_date + 1
-  end_date   = Date.today - 7
-
-  puts "Adding SPC storm reports for #{start_date} through #{end_date}"
-
-  MINUTE = 60
-  HOUR   = 60*MINUTE
-
-  def spc_storm_report_row_to_time(date, row)
-    # 1955 => 2018-05-10 19:55:00 UTC
-    hour, minute = row["Time"].to_i.divmod(100)
-
-    hour += 24 if hour < 12 # Convective days are 12Z - 12Z, so times < 12 hours are the next UTC day.
-
-    Time.new(date.year, date.month, date.day, 0,0,0, "+00:00") + hour*HOUR + minute*MINUTE
-  end
-
-  (start_date..end_date).each do |date|
-    yymmdd = "%02d%02d%02d" % [date.year % 100, date.month, date.day]
-
-    STDERR.puts "https://www.spc.noaa.gov/climo/reports/#{yymmdd}_rpts_filtered.csv"
-
-    # Time,Speed,Location,County,State,Lat,Lon,Comments
-    # 1528,59,17 S SAINT GEORGE ISLAN,GMZ755,FL,29.41,-84.86,GUST TO 59 MPH AT THE C TOWER AT 20 METER ELEVATION. (TAE)
-    # 2017,UNK,3 N UNIONTOWN,PERRY,AL,32.5,-87.5,TREES DOWN NEAR THE INTERSECTION OF HWY 183 AND HEMLOCK RD. POSSIBLE TORNADO. TIME ESTIMATED FROM RADAR. (BMX)
-
-    day_reports_csv_str = `curl https://www.spc.noaa.gov/climo/reports/#{yymmdd}_rpts_filtered.csv`
-    day_reports_csv_str.gsub!('"', 'inch') # SPC CSV doesn't quote fields so " for "inch" messes us up.
-
-    day_reports_tornado_csv_str, day_reports_wind_csv_str, day_reports_hail_csv_str = day_reports_csv_str.split(/^(?=Time)/)
-
-    wind_rows = CSV.parse(day_reports_wind_csv_str, headers: true).each.to_a # as list of rows
-
-    # Wind rows are allowed to have bad geocodes.
-    wind_rows.map! do |row|
-      time = spc_storm_report_row_to_time(date, row)
-
-      begin_end_time_cells(time, time) +
-      [
-        "Thunderstorm Wind", # kind
-        (row["Speed"] == "UNK" ? "-1" : "%0.1f" % (row["Speed"].to_f * 0.868976)), # speed, convert to knots
-        "gust", # speed_type
-        (row["Comments"] =~ /\b(AWOS|ASOS|MESONET|\w*(weather|wx)\w* station|recorded|measured|anemometer)\b/i ? "measured" : "estimated"), # source
-      ] +
-      row_to_lat_lon_cells(row)
-    end
-
-    wind_rows.map(&:to_csv).sort.each do |row_csv_str|
-      wind_reports_file.print row_csv_str
-    end
-
-  rescue CSV::MalformedCSVError => e
-    STDERR.puts e
-    STDERR.puts e.message
-    STDERR.puts day_reports_csv_str
   end
 end
 

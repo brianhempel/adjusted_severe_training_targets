@@ -25,10 +25,17 @@ struct Report
   knots                        :: Float64
   sustained                    :: Bool # false == gust
   measured                     :: Bool
+  injuries_direct              :: Int64
+  injuries_indirect            :: Int64
+  deaths_direct                :: Int64
+  deaths_indirect              :: Int64
 end
 
 is_severe_wind(wind_report) = wind_report.knots  >= 50.0
 is_sig_wind(wind_report)    = wind_report.knots  >= 65.0
+
+ncasualties(report) = report.injuries_direct + report.injuries_indirect + report.deaths_direct + report.deaths_indirect
+ndeaths(report)     = report.deaths_direct + report.deaths_indirect
 
 function report_is_within_25mi(latlon, report)
   meters_away = Grids.instant_meters_to_line(latlon, report.start_latlon, report.end_latlon)
@@ -90,15 +97,19 @@ function read_reports_csv(path) ::Vector{Report}
 
   report_headers = report_headers[1,:] # 1x9 array to 9-element vector.
 
-  start_seconds_col_i = findfirst(isequal("begin_time_seconds"), report_headers)
-  end_seconds_col_i   = findfirst(isequal("end_time_seconds"), report_headers)
-  start_lat_col_i     = findfirst(isequal("begin_lat"), report_headers)
-  start_lon_col_i     = findfirst(isequal("begin_lon"), report_headers)
-  end_lat_col_i       = findfirst(isequal("end_lat"), report_headers)
-  end_lon_col_i       = findfirst(isequal("end_lon"), report_headers)
-  knots_col_i         = findfirst(isequal("speed"), report_headers)
-  speed_type_col_i    = findfirst(isequal("speed_type"), report_headers)
-  source_col_i        = findfirst(isequal("source"), report_headers)
+  start_seconds_col_i     = findfirst(isequal("begin_time_seconds"), report_headers)
+  end_seconds_col_i       = findfirst(isequal("end_time_seconds"), report_headers)
+  start_lat_col_i         = findfirst(isequal("begin_lat"), report_headers)
+  start_lon_col_i         = findfirst(isequal("begin_lon"), report_headers)
+  end_lat_col_i           = findfirst(isequal("end_lat"), report_headers)
+  end_lon_col_i           = findfirst(isequal("end_lon"), report_headers)
+  knots_col_i             = findfirst(isequal("speed"), report_headers)
+  speed_type_col_i        = findfirst(isequal("speed_type"), report_headers)
+  source_col_i            = findfirst(isequal("source"), report_headers)
+  injuries_direct_col_i   = findfirst(isequal("injuries_direct"), report_headers)
+  injuries_indirect_col_i = findfirst(isequal("injuries_indirect"), report_headers)
+  deaths_direct_col_i     = findfirst(isequal("deaths_direct"), report_headers)
+  deaths_indirect_col_i   = findfirst(isequal("deaths_indirect"), report_headers)
 
   row_to_report(row) = begin
     start_seconds = row[start_seconds_col_i]
@@ -121,7 +132,12 @@ function read_reports_csv(path) ::Vector{Report}
     sustained = row[speed_type_col_i] == "sustained"
     measured  = row[source_col_i]     == "measured"
 
-    Report(Dates.unix2datetime(start_seconds), start_seconds, Dates.unix2datetime(end_seconds), end_seconds, start_latlon, end_latlon, knots, sustained, measured)
+    injuries_direct = row[injuries_direct_col_i]
+    injuries_indirect = row[injuries_indirect_col_i]
+    deaths_direct = row[deaths_direct_col_i]
+    deaths_indirect = row[deaths_indirect_col_i]
+
+    Report(Dates.unix2datetime(start_seconds), start_seconds, Dates.unix2datetime(end_seconds), end_seconds, start_latlon, end_latlon, knots, sustained, measured, injuries_direct, injuries_indirect, deaths_direct, deaths_indirect)
   end
 
   reports_raw = mapslices(row_to_report, report_rows, dims = [2])[:,1]
