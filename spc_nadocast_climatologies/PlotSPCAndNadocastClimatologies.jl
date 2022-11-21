@@ -13,7 +13,7 @@ ndays = 183
 plots = [
   ("total_prob_nadocast_wind_183_days_12z_absolutely_calibrated.csv",     "Nadocast 12Z Wind, Average Day Probability",          "colors_8.cpt"),
   ("total_prob_nadocast_wind_adj_183_days_12z_absolutely_calibrated.csv", "Nadocast 12Z Wind Adjusted, Average Day Probability", "colors_3.cpt"),
-  ("total_prob_spc_wind_183_days_12z_spc_calibrated.csv",                 "SPC 1300 Wind Outlook, Average Day Probability",      "colors_2.cpt"),
+  ("total_prob_spc_wind_183_days_12z_spc_calibrated.csv",                 "SPC 13Z Wind Outlook, Average Day Probability",       "colors_2.cpt"),
 ]
 
 for (csv_path, title, colors) in plots
