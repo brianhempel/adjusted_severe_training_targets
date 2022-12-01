@@ -60,13 +60,14 @@ estimated_reweighted_plus_measured_sig_report_fourhours_per_year_grid_130_croppe
 estimated_reweighted_plus_measured_sig_report_days_per_year_grid_130_cropped_blurred_path(factor)      = joinpath(@__DIR__, "out", "estimated_x$(factor)_reweighted_plus_measured_sig_report_days_per_year_grid_130_cropped_blurred.csv")
 
 
-const colors_path_40          = joinpath(@__DIR__, "colors", "colors_40.cpt")
-const colors_path_10          = joinpath(@__DIR__, "colors", "colors_10.cpt")
-const colors_path_5           = joinpath(@__DIR__, "colors", "colors_5.cpt")
-const colors_path_2           = joinpath(@__DIR__, "colors", "colors_2.cpt")
-const colors_path_1           = joinpath(@__DIR__, "colors", "colors_1.cpt")
-const colors_path_0_5         = joinpath(@__DIR__, "colors", "colors_0.5.cpt")
-const colors_path_reweighting = joinpath(@__DIR__, "colors", "colors_reweighting.cpt")
+const colors_path_40                = joinpath(@__DIR__, "colors", "colors_40.cpt")
+const colors_path_10                = joinpath(@__DIR__, "colors", "colors_10.cpt")
+const colors_path_10_black_clipping = joinpath(@__DIR__, "colors", "colors_10_black_clipping.cpt")
+const colors_path_5                 = joinpath(@__DIR__, "colors", "colors_5.cpt")
+const colors_path_2                 = joinpath(@__DIR__, "colors", "colors_2.cpt")
+const colors_path_1                 = joinpath(@__DIR__, "colors", "colors_1.cpt")
+const colors_path_0_5               = joinpath(@__DIR__, "colors", "colors_0.5.cpt")
+const colors_path_reweighting       = joinpath(@__DIR__, "colors", "colors_reweighting.cpt")
 
 
 function plot_one(title, station_vals, interpolation_path; zlow, zhigh, steps, colors, label_contours = true)
@@ -187,9 +188,9 @@ function plot_reports()
     end
 
     @sync begin
-      @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Report Hours/Year",           nothing, estimated_reweighted_plus_measured_report_hours_per_year_grid_130_cropped_blurred_path(correction_factor);         zlow = 0, zhigh = 10, steps = 10, colors = colors_path_10)
-      @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Report Four-Hours/Year",      nothing, estimated_reweighted_plus_measured_report_fourhours_per_year_grid_130_cropped_blurred_path(correction_factor);     zlow = 0, zhigh = 10, steps = 10, colors = colors_path_10)
-      @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Report Days/Year",            nothing, estimated_reweighted_plus_measured_report_days_per_year_grid_130_cropped_blurred_path(correction_factor);          zlow = 0, zhigh = 10, steps = 10, colors = colors_path_10)
+      @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Report Hours/Year",           nothing, estimated_reweighted_plus_measured_report_hours_per_year_grid_130_cropped_blurred_path(correction_factor);         zlow = 0, zhigh = 10, steps = 10, colors = colors_path_10_black_clipping)
+      @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Report Four-Hours/Year",      nothing, estimated_reweighted_plus_measured_report_fourhours_per_year_grid_130_cropped_blurred_path(correction_factor);     zlow = 0, zhigh = 10, steps = 10, colors = colors_path_10_black_clipping)
+      @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Report Days/Year",            nothing, estimated_reweighted_plus_measured_report_days_per_year_grid_130_cropped_blurred_path(correction_factor);          zlow = 0, zhigh = 10, steps = 10, colors = colors_path_10_black_clipping)
       @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Sig. Report Hours/Year",      nothing, estimated_reweighted_plus_measured_sig_report_hours_per_year_grid_130_cropped_blurred_path(correction_factor);     zlow = 0, zhigh = 2,  steps = 10, colors = colors_path_2)
       @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Sig. Report Four-Hours/Year", nothing, estimated_reweighted_plus_measured_sig_report_fourhours_per_year_grid_130_cropped_blurred_path(correction_factor); zlow = 0, zhigh = 2,  steps = 10, colors = colors_path_2)
       @async plot_one("Estimated x$(correction_factor) Reweighted + Measured Sig. Report Days/Year",       nothing, estimated_reweighted_plus_measured_sig_report_days_per_year_grid_130_cropped_blurred_path(correction_factor);      zlow = 0, zhigh = 2,  steps = 10, colors = colors_path_2)
